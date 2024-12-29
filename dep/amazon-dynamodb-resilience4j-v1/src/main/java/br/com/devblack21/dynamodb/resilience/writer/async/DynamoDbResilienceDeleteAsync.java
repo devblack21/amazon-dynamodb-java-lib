@@ -1,24 +1,28 @@
-package br.com.devblack21.dynamodb.resilience.writer;
+package br.com.devblack21.dynamodb.resilience.writer.async;
 
 import br.com.devblack21.dynamodb.resilience.backoff.ErrorRecoverer;
 import br.com.devblack21.dynamodb.resilience.backoff.RetryableExecutor;
 import br.com.devblack21.dynamodb.resilience.interceptors.RequestInterceptor;
+import br.com.devblack21.dynamodb.resilience.writer.DynamoDbResilienceDelete;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
-public class DynamoDbResilienceDeleteSync<T> extends AbstractSyncWriter<T> implements DynamoDbResilienceDelete<T> {
+import java.util.concurrent.ExecutorService;
+
+
+public class DynamoDbResilienceDeleteAsync<T> extends AbstractAsyncWriter<T> implements DynamoDbResilienceDelete<T> {
 
   private final DynamoDBMapper dynamoDBMapper;
   private final RequestInterceptor<T> requestInterceptor;
 
-  public DynamoDbResilienceDeleteSync(final DynamoDBMapper dynamoDBMapper,
-                                      final RetryableExecutor retryableExecutor,
-                                      final ErrorRecoverer<T> errorRecoverer,
-                                      final RequestInterceptor<T> requestInterceptor) {
-    super(retryableExecutor, errorRecoverer, requestInterceptor);
+  public DynamoDbResilienceDeleteAsync(final DynamoDBMapper dynamoDBMapper,
+                                       final RetryableExecutor retryableExecutor,
+                                       final ErrorRecoverer<T> errorRecoverer,
+                                       final ExecutorService executorService,
+                                       final RequestInterceptor<T> requestInterceptor) {
+    super(retryableExecutor, errorRecoverer, executorService, requestInterceptor);
     this.dynamoDBMapper = dynamoDBMapper;
     this.requestInterceptor = requestInterceptor;
   }
-
 
   @Override
   public void delete(final T entity) {

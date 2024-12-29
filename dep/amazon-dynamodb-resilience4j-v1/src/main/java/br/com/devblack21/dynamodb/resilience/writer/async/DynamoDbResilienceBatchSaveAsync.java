@@ -1,36 +1,37 @@
-package br.com.devblack21.dynamodb.resilience.writer;
+package br.com.devblack21.dynamodb.resilience.writer.async;
 
 import br.com.devblack21.dynamodb.resilience.backoff.ErrorRecoverer;
 import br.com.devblack21.dynamodb.resilience.backoff.RetryableExecutor;
 import br.com.devblack21.dynamodb.resilience.interceptors.RequestInterceptor;
+import br.com.devblack21.dynamodb.resilience.writer.DynamoDbResilienceBatchSave;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
 import java.util.concurrent.ExecutorService;
 
 
-public class DynamoDbResilienceSaveAsync<T> extends AbstractAsyncWriter<T> implements DynamoDbResilienceSave<T> {
+public class DynamoDbResilienceBatchSaveAsync<T> extends AbstractAsyncWriter<T> implements DynamoDbResilienceBatchSave<T> {
 
   private final DynamoDBMapper dynamoDBMapper;
   private final RequestInterceptor<T> requestInterceptor;
 
-  public DynamoDbResilienceSaveAsync(final DynamoDBMapper dynamoDBMapper,
-                                     final RetryableExecutor retryableExecutor,
-                                     final ErrorRecoverer<T> errorRecoverer,
-                                     final ExecutorService executorService,
-                                     final RequestInterceptor<T> requestInterceptor) {
+  public DynamoDbResilienceBatchSaveAsync(final DynamoDBMapper dynamoDBMapper,
+                                          final RetryableExecutor retryableExecutor,
+                                          final ErrorRecoverer<T> errorRecoverer,
+                                          final ExecutorService executorService,
+                                          final RequestInterceptor<T> requestInterceptor) {
     super(retryableExecutor, errorRecoverer, executorService, requestInterceptor);
     this.dynamoDBMapper = dynamoDBMapper;
     this.requestInterceptor = requestInterceptor;
   }
 
   @Override
-  public void save(final T entity) {
+  public void batchSave(final T entity) {
     this.execute(entity);
   }
 
   @Override
   public void executor(final T entity) {
-    this.dynamoDBMapper.save(entity);
+    this.dynamoDBMapper.batchSave(entity);
     this.logSuccess(entity);
   }
 

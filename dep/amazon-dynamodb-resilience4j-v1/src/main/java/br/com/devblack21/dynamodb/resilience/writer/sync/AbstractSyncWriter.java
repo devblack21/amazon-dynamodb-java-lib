@@ -1,4 +1,4 @@
-package br.com.devblack21.dynamodb.resilience.writer;
+package br.com.devblack21.dynamodb.resilience.writer.sync;
 
 import br.com.devblack21.dynamodb.resilience.backoff.ErrorRecoverer;
 import br.com.devblack21.dynamodb.resilience.backoff.RetryableExecutor;
@@ -6,30 +6,25 @@ import br.com.devblack21.dynamodb.resilience.interceptors.RequestInterceptor;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-
 @AllArgsConstructor
 @RequiredArgsConstructor
-abstract class AbstractAsyncWriter<T> {
+abstract class AbstractSyncWriter<T> {
 
   private final RetryableExecutor retryableExecutor;
   private final ErrorRecoverer<T> errorRecoverer;
-  private final ExecutorService executorService;
   private final RequestInterceptor<T> requestInterceptor;
 
   public void execute(final T entity) {
-    CompletableFuture.runAsync(() -> executor(entity), executorService)
-      .whenComplete((unused, throwable) -> {
-        if (throwable != null) {
-          this.handleSaveFailure(entity, throwable);
-        }
-      });
+    try {
+      this.executor(entity);
+    } catch (final Exception initialException) {
+      this.handleSaveFailure(entity, initialException);
+    }
   }
 
   public abstract void executor(final T entity);
 
-  private void handleSaveFailure(final T entity, final Throwable initialException) {
+  private void handleSaveFailure(final T entity, final Exception initialException) {
     if (this.retryableExecutor != null) {
       try {
         this.retryableExecutor.execute(() -> executor(entity));
@@ -41,11 +36,13 @@ abstract class AbstractAsyncWriter<T> {
     }
   }
 
-  private void handleRecoveryOrThrow(final T entity, final Throwable exceptionToHandle) {
+  private void handleRecoveryOrThrow(final T entity, final Exception exceptionToHandle) {
     if (this.errorRecoverer != null) {
       this.errorRecoverer.recover(entity);
+      this.logError(entity, exceptionToHandle);
     } else {
       this.logError(entity, exceptionToHandle);
+      throw new RuntimeException("Failed to save entity after retry attempts.", exceptionToHandle);
     }
   }
 

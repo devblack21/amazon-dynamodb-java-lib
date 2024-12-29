@@ -1,19 +1,20 @@
-package br.com.devblack21.dynamodb.resilience.writer;
+package br.com.devblack21.dynamodb.resilience.writer.sync;
 
 import br.com.devblack21.dynamodb.resilience.backoff.ErrorRecoverer;
 import br.com.devblack21.dynamodb.resilience.backoff.RetryableExecutor;
 import br.com.devblack21.dynamodb.resilience.interceptors.RequestInterceptor;
+import br.com.devblack21.dynamodb.resilience.writer.DynamoDbResilienceBatchSave;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
-public class DynamoDbResilienceSaveSync<T> extends AbstractSyncWriter<T> implements DynamoDbResilienceSave<T> {
+public class DynamoDbResilienceBatchSaveSync<T> extends AbstractSyncWriter<T> implements DynamoDbResilienceBatchSave<T> {
 
   private final DynamoDBMapper dynamoDBMapper;
   private final RequestInterceptor<T> requestInterceptor;
 
-  public DynamoDbResilienceSaveSync(final DynamoDBMapper dynamoDBMapper,
-                                    final RetryableExecutor retryableExecutor,
-                                    final ErrorRecoverer<T> errorRecoverer,
-                                    final RequestInterceptor<T> requestInterceptor) {
+  public DynamoDbResilienceBatchSaveSync(final DynamoDBMapper dynamoDBMapper,
+                                         final RetryableExecutor retryableExecutor,
+                                         final ErrorRecoverer<T> errorRecoverer,
+                                         final RequestInterceptor<T> requestInterceptor) {
     super(retryableExecutor, errorRecoverer, requestInterceptor);
     this.dynamoDBMapper = dynamoDBMapper;
     this.requestInterceptor = requestInterceptor;
@@ -21,13 +22,13 @@ public class DynamoDbResilienceSaveSync<T> extends AbstractSyncWriter<T> impleme
 
 
   @Override
-  public void save(final T entity) {
+  public void batchSave(final T entity) {
     this.execute(entity);
   }
 
   @Override
   public void executor(final T entity) {
-    this.dynamoDBMapper.save(entity);
+    this.dynamoDBMapper.batchSave(entity);
     this.logSuccess(entity);
   }
 
