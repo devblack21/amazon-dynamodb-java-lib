@@ -40,7 +40,7 @@ class MaxAttemptsRetrySchedulerTest {
   }
 
   @Test
-  void testExecuteSuccessOnFirstAttempt() throws ExecutionException, InterruptedException {
+  void testExecuteSuccessOnFirstAttempt() {
 
     final SuccessRunnableMock runnable = new SuccessRunnableMock();
 
@@ -71,8 +71,6 @@ class MaxAttemptsRetrySchedulerTest {
   void testMaxAttemptsExceeded() {
 
     final FailureRunnableMock runnable = new FailureRunnableMock();
-
-    when(backoffDelayAlgorithm.delay(anyInt())).thenReturn(0);
 
     final MaxAttemptsRetryException exception =
       Assertions.assertThrows(MaxAttemptsRetryException.class, () -> executor.execute(runnable));

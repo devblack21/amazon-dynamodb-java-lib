@@ -1,8 +1,10 @@
 package br.com.devblack21.dynamodb.resilience.backoff;
 
+import br.com.devblack21.dynamodb.resilience.exception.MaxAttemptsRetryException;
 import br.com.devblack21.dynamodb.resilience.interceptor.RetryInterceptor;
 import lombok.RequiredArgsConstructor;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -13,20 +15,39 @@ public class InfiniteRetryScheduler implements BackoffExecutor {
   private final ScheduledExecutorService scheduledExecutorService;
   private final RetryInterceptor retryInterceptor;
 
-  public void execute(final Runnable runnable) {
-    execute(runnable, 0);
+  @Override
+  public void execute(final Runnable runnable) throws ExecutionException, InterruptedException {
+    try {
+      this.executeWithRetry(runnable, 0);
+    } finally {
+      scheduledExecutorService.shutdown();
+    }
   }
 
-  private void execute(final Runnable runnable, final int count) {
+  private void executeWithRetry(final Runnable runnable, final int attemptCount) throws ExecutionException, InterruptedException {
     try {
-      this.scheduledExecutorService.schedule(() -> {
-        this.logRetryStart();
-        runnable.run();
-        this.logRetryEnd();
-      }, delayAlgorithm.delay(count), TimeUnit.MILLISECONDS);
+      this.logRetryStart();
+      runnable.run();
+      this.logRetryEnd();
     } catch (final Exception e) {
-      execute(runnable, count + 1);
+      this.logRetryEnd();
+      this.scheduleRetry(runnable, attemptCount + 1);
     }
+  }
+
+  private void scheduleRetry(final Runnable runnable, final int nextAttemptCount) throws ExecutionException, InterruptedException {
+    final long delay = this.delayAlgorithm.delay(nextAttemptCount);
+
+    this.scheduledExecutorService.schedule(() -> {
+        try {
+          executeWithRetry(runnable, nextAttemptCount);
+        } catch (final MaxAttemptsRetryException e) {
+          throw e;
+        } catch (final Exception e) {
+          throw new RuntimeException(e);
+        }
+      },
+      delay, TimeUnit.MILLISECONDS).get();
   }
 
   private void logRetryStart() {

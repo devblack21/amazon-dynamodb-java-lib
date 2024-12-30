@@ -18,6 +18,7 @@ public class InfiniteRetryExecutor implements BackoffExecutor {
       runnable.run();
       this.logRetryEnd();
     } catch (final Exception e) {
+      this.logRetryEnd();
       execute(runnable, count + 1);
     }
   }
