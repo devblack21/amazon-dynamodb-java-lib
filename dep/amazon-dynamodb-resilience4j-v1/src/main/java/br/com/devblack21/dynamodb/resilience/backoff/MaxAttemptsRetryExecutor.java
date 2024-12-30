@@ -5,7 +5,7 @@ import br.com.devblack21.dynamodb.resilience.interceptors.RetryInterceptor;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class RetryableMaxAttemptsExecutor implements RetryableExecutor {
+public class MaxAttemptsRetryExecutor implements BackoffExecutor {
 
   private final int maxAttempts;
   private final RetryInterceptor retryInterceptor;

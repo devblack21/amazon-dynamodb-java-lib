@@ -2,13 +2,13 @@ package br.com.devblack21.dynamodb.resilience.backoff;
 
 import java.util.Random;
 
-public class ExponencialFullJitterCalculator implements BackoffDelayCalculator {
+public class ExponencialFullJitter implements BackoffDelayAlgorithm {
 
   private final int baseDelay;
   private final int maxBackoff;
   private final Random random;
 
-  public ExponencialFullJitterCalculator(final int baseDelay, final int maxBackoff) {
+  public ExponencialFullJitter(final int baseDelay, final int maxBackoff) {
     this.baseDelay = baseDelay;
     this.maxBackoff = maxBackoff;
     this.random = new Random();

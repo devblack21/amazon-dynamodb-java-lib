@@ -1,7 +1,7 @@
 package br.com.devblack21.dynamodb.resilience.writer.async;
 
+import br.com.devblack21.dynamodb.resilience.backoff.BackoffExecutor;
 import br.com.devblack21.dynamodb.resilience.backoff.ErrorRecoverer;
-import br.com.devblack21.dynamodb.resilience.backoff.RetryableExecutor;
 import br.com.devblack21.dynamodb.resilience.interceptors.RequestInterceptor;
 import br.com.devblack21.dynamodb.resilience.writer.DynamoDbResilienceBatchDelete;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
@@ -15,11 +15,11 @@ public class DynamoDbResilienceBatchDeleteAsync<T> extends AbstractAsyncWriter<T
   private final RequestInterceptor<T> requestInterceptor;
 
   public DynamoDbResilienceBatchDeleteAsync(final DynamoDBMapper dynamoDBMapper,
-                                            final RetryableExecutor retryableExecutor,
+                                            final BackoffExecutor backoffExecutor,
                                             final ErrorRecoverer<T> errorRecoverer,
                                             final ExecutorService executorService,
                                             final RequestInterceptor<T> requestInterceptor) {
-    super(retryableExecutor, errorRecoverer, executorService, requestInterceptor);
+    super(backoffExecutor, errorRecoverer, executorService, requestInterceptor);
     this.dynamoDBMapper = dynamoDBMapper;
     this.requestInterceptor = requestInterceptor;
   }

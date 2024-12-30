@@ -8,10 +8,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
-public class SchedulerRetryableMaxAttemptsExecutor implements RetryableExecutor {
+public class MaxAttemptsRetryScheduler implements BackoffExecutor {
 
   private final int maxAttempts;
-  private final BackoffDelayCalculator delayCalculator;
+  private final BackoffDelayAlgorithm delayAlgorithm;
   private final ScheduledExecutorService scheduledExecutorService;
   private final RetryInterceptor retryInterceptor;
 
@@ -29,7 +29,7 @@ public class SchedulerRetryableMaxAttemptsExecutor implements RetryableExecutor 
         this.logRetryStart();
         runnable.run();
         this.logRetryEnd();
-      }, delayCalculator.delay(count), TimeUnit.MILLISECONDS);
+      }, delayAlgorithm.delay(count), TimeUnit.MILLISECONDS);
     } catch (final Exception e) {
       execute(runnable, count + 1);
     }
