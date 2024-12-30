@@ -1,6 +1,6 @@
 package br.com.devblack21.dynamodb.resilience.backoff;
 
-import br.com.devblack21.dynamodb.resilience.interceptors.RetryInterceptor;
+import br.com.devblack21.dynamodb.resilience.interceptor.RetryInterceptor;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor

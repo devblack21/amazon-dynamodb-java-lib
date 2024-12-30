@@ -2,7 +2,7 @@ package br.com.devblack21.dynamodb.resilience.writer.sync;
 
 import br.com.devblack21.dynamodb.resilience.backoff.BackoffExecutor;
 import br.com.devblack21.dynamodb.resilience.backoff.ErrorRecoverer;
-import br.com.devblack21.dynamodb.resilience.interceptors.RequestInterceptor;
+import br.com.devblack21.dynamodb.resilience.interceptor.RequestInterceptor;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 

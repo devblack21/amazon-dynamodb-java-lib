@@ -1,4 +1,4 @@
-package br.com.devblack21.dynamodb.resilience.interceptors;
+package br.com.devblack21.dynamodb.resilience.interceptor;
 
 public interface RetryInterceptor {
 

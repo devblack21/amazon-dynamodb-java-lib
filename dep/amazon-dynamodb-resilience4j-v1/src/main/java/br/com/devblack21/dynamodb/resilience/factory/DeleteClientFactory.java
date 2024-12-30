@@ -1,8 +1,8 @@
-package br.com.devblack21.dynamodb.resilience.factorys;
+package br.com.devblack21.dynamodb.resilience.factory;
 
 import br.com.devblack21.dynamodb.resilience.backoff.BackoffExecutor;
 import br.com.devblack21.dynamodb.resilience.backoff.ErrorRecoverer;
-import br.com.devblack21.dynamodb.resilience.interceptors.RequestInterceptor;
+import br.com.devblack21.dynamodb.resilience.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.resilience.writer.DynamoDbResilienceDelete;
 import br.com.devblack21.dynamodb.resilience.writer.async.DynamoDbResilienceDeleteAsync;
 import br.com.devblack21.dynamodb.resilience.writer.sync.DynamoDbResilienceDeleteSync;
