@@ -2,6 +2,9 @@ package br.com.devblack21.dynamodb.resilience.helper.mock;
 
 import org.junit.jupiter.api.Assertions;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+
 abstract class AbstractMock implements CustomMock, Runnable {
 
   private int times = 0;
@@ -19,12 +22,12 @@ abstract class AbstractMock implements CustomMock, Runnable {
   }
 
   public void verify(int times) {
-    Assertions.assertTrue(times(times));
+    assertThat(this.times, equalTo(times));
     this.times = 0;
   }
 
   public void verifyNoMoreInterations() {
-    Assertions.assertTrue(times(0));
+    assertThat(this.times, equalTo(0));
     this.times = 0;
   }
 

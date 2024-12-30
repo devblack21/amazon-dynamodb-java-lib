@@ -14,7 +14,6 @@ public class FailureSuccessRunnableMock extends AbstractMock {
     if (getTimes() != timeSuccess) {
       throw new RuntimeException("");
     }
-
   }
 
 }
