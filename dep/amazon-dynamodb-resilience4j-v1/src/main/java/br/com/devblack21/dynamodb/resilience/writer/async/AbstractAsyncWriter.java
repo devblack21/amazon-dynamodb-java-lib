@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-@AllArgsConstructor
 @RequiredArgsConstructor
 abstract class AbstractAsyncWriter<T> {
 
