@@ -31,7 +31,7 @@ public class DynamoDbResilienceBatchDeleteAsync<T> extends AbstractAsyncWriter<T
 
   @Override
   public void executor(final T entity) {
-    this.dynamoDBMapper.delete(entity);
+    this.dynamoDBMapper.batchDelete(entity);
     this.logSuccess(entity);
   }
 

@@ -13,7 +13,6 @@ import org.mockito.ArgumentCaptor;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 import static org.mockito.Mockito.*;
 
@@ -25,16 +24,16 @@ class AbstractAsyncWriterTest {
   private AbstractAsyncWriter<Object> testWriter;
   private AbstractAsyncWriter<Object> testWriterWithoutBackoffAndRecoverer;
   private AbstractAsyncWriter<Object> testFailureWriter;
-  private static ScheduledExecutorService scheduledExecutorService;
+  private static ExecutorService executorService;
 
   @BeforeAll
   static void setUpExecutorService() {
-    scheduledExecutorService = Executors.newScheduledThreadPool(10);
+    executorService = Executors.newCachedThreadPool();
   }
 
   @AfterAll
   static void tearDownExecutorService() {
-    scheduledExecutorService.shutdown();
+    executorService.shutdown();
   }
 
   @BeforeEach
@@ -46,20 +45,20 @@ class AbstractAsyncWriterTest {
     testWriter = new TestAsyncWriterSuccess(
       mockBackoffExecutor,
       mockErrorRecoverer,
-      scheduledExecutorService,
+      executorService,
       mockRequestInterceptor
     );
 
     testFailureWriter = new TestAsyncWriterFailure(
       mockBackoffExecutor,
       mockErrorRecoverer,
-      scheduledExecutorService,
+      executorService,
       mockRequestInterceptor);
 
     testWriterWithoutBackoffAndRecoverer = new TestAsyncWriterFailure(
       null,
       null,
-      scheduledExecutorService,
+      executorService,
       mockRequestInterceptor);
 
   }
@@ -156,7 +155,8 @@ class AbstractAsyncWriterTest {
     }
 
     @Override
-    public void executor(final Object entity) {}
+    public void executor(final Object entity) {
+    }
   }
 
   private static class TestAsyncWriterFailure extends AbstractAsyncWriter<Object> {

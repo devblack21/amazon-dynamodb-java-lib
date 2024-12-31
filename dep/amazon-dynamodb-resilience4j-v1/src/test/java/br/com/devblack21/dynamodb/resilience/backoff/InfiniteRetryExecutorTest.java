@@ -3,7 +3,6 @@ package br.com.devblack21.dynamodb.resilience.backoff;
 import br.com.devblack21.dynamodb.resilience.helper.mock.FailureSuccessRunnableMock;
 import br.com.devblack21.dynamodb.resilience.helper.mock.SuccessRunnableMock;
 import br.com.devblack21.dynamodb.resilience.interceptor.RetryInterceptor;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -63,8 +62,8 @@ class InfiniteRetryExecutorTest {
 
     runnable.verify(maxAttempts);
     runnable.verifyNoMoreInterations();
-    verify(retryInterceptor, never()).logRetryStart();
-    verify(retryInterceptor, never()).logRetryEnd();
+    verify(retryInterceptor, times(maxAttempts)).logRetryStart();
+    verify(retryInterceptor, times(maxAttempts)).logRetryEnd();
   }
 
 
