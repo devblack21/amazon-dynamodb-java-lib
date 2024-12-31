@@ -3,7 +3,7 @@ package br.com.devblack21.dynamodb.resilience.writer.async;
 import br.com.devblack21.dynamodb.resilience.backoff.BackoffExecutor;
 import br.com.devblack21.dynamodb.resilience.backoff.ErrorRecoverer;
 import br.com.devblack21.dynamodb.resilience.interceptor.RequestInterceptor;
-import br.com.devblack21.dynamodb.resilience.writer.DynamoDbResilienceBatchDelete;
+import br.com.devblack21.dynamodb.resilience.writer.DynamoDbResilienceDelete;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.*;
 
-class DynamoDbResilienceBatchDeleteAsyncTest {
+class DynamoDbResilienceDeleteAsyncTest {
 
   private final Integer TIMEOUT = 3;
 
@@ -27,8 +27,8 @@ class DynamoDbResilienceBatchDeleteAsyncTest {
   private BackoffExecutor mockBackoffExecutor;
   private ErrorRecoverer<Object> mockErrorRecoverer;
   private RequestInterceptor<Object> mockRequestInterceptor;
-  private DynamoDbResilienceBatchDelete<Object> testWriter;
-  private DynamoDbResilienceBatchDelete<Object> testWriterWithoutBackoffAndRecoverer;
+  private DynamoDbResilienceDelete<Object> testWriter;
+  private DynamoDbResilienceDelete<Object> testWriterWithoutBackoffAndRecoverer;
   private static ExecutorService executorService;
 
   @BeforeAll
@@ -48,7 +48,7 @@ class DynamoDbResilienceBatchDeleteAsyncTest {
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
-    testWriter = new DynamoDbResilienceBatchDeleteAsync<>(
+    testWriter = new DynamoDbResilienceDeleteAsync<>(
       dynamoDBMapper,
       mockBackoffExecutor,
       mockErrorRecoverer,
@@ -56,21 +56,20 @@ class DynamoDbResilienceBatchDeleteAsyncTest {
       mockRequestInterceptor
     );
 
-    testWriterWithoutBackoffAndRecoverer = new DynamoDbResilienceBatchDeleteAsync<>(
+    testWriterWithoutBackoffAndRecoverer = new DynamoDbResilienceDeleteAsync<>(
       dynamoDBMapper,
       null,
       null,
       executorService,
       mockRequestInterceptor
     );
-
   }
 
   @Test
   void shouldExecuteSuccessfullyWithoutErrors() {
     final Object entity = new Object();
 
-    testWriter.batchDelete(entity);
+    testWriter.delete(entity);
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verifyNoInteractions(mockBackoffExecutor, mockErrorRecoverer);
@@ -86,7 +85,7 @@ class DynamoDbResilienceBatchDeleteAsyncTest {
     simulateDynamoDbFailure();
     captureRunnableForRetry();
 
-    testWriter.batchDelete(entity);
+    testWriter.delete(entity);
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
@@ -103,7 +102,7 @@ class DynamoDbResilienceBatchDeleteAsyncTest {
     simulateDynamoDbFailure();
     simulateBackoffFailure();
 
-    testWriter.batchDelete(entity);
+    testWriter.delete(entity);
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
@@ -120,7 +119,7 @@ class DynamoDbResilienceBatchDeleteAsyncTest {
     simulateBackoffFailure();
     simulateRecoveryFailure();
 
-    testWriter.batchDelete(entity);
+    testWriter.delete(entity);
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
@@ -136,7 +135,7 @@ class DynamoDbResilienceBatchDeleteAsyncTest {
 
     simulateDynamoDbFailure();
 
-    testWriterWithoutBackoffAndRecoverer.batchDelete(entity);
+    testWriterWithoutBackoffAndRecoverer.delete(entity);
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verifyNoInteractions(mockBackoffExecutor, mockErrorRecoverer);
@@ -145,7 +144,7 @@ class DynamoDbResilienceBatchDeleteAsyncTest {
   }
 
   private void simulateDynamoDbFailure() {
-    doThrow(RuntimeException.class).when(dynamoDBMapper).batchDelete(any(Object.class));
+    doThrow(RuntimeException.class).when(dynamoDBMapper).delete(any(Object.class));
   }
 
   private void simulateBackoffFailure() throws ExecutionException, InterruptedException {

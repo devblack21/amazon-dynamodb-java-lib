@@ -4,6 +4,7 @@ package br.com.devblack21.dynamodb.resilience.writer.async;
 import br.com.devblack21.dynamodb.resilience.backoff.BackoffExecutor;
 import br.com.devblack21.dynamodb.resilience.backoff.ErrorRecoverer;
 import br.com.devblack21.dynamodb.resilience.interceptor.RequestInterceptor;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,10 +14,13 @@ import org.mockito.ArgumentCaptor;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.*;
 
 class AbstractAsyncWriterTest {
+
+  private final Integer TIMEOUT = 3;
 
   private BackoffExecutor mockBackoffExecutor;
   private ErrorRecoverer<Object> mockErrorRecoverer;
@@ -70,10 +74,12 @@ class AbstractAsyncWriterTest {
 
     testWriter.execute(entity);
 
-    verify(mockBackoffExecutor, never()).execute(any(Runnable.class));
-    verify(mockErrorRecoverer, never()).recover(any());
-    verify(mockRequestInterceptor, never()).logSuccess(any());
-    verify(mockRequestInterceptor, never()).logError(any(), any());
+    Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
+      verify(mockBackoffExecutor, never()).execute(any(Runnable.class));
+      verify(mockErrorRecoverer, never()).recover(any());
+      verify(mockRequestInterceptor, never()).logSuccess(any());
+      verify(mockRequestInterceptor, never()).logError(any(), any());
+    });
   }
 
   @Test
@@ -87,10 +93,12 @@ class AbstractAsyncWriterTest {
 
     testFailureWriter.execute(entity);
 
-    verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
-    verify(mockErrorRecoverer, never()).recover(any());
-    verify(mockRequestInterceptor, never()).logError(eq(entity), any());
-    verify(mockRequestInterceptor, never()).logSuccess(any());
+    Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
+      verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
+      verify(mockErrorRecoverer, never()).recover(any());
+      verify(mockRequestInterceptor, never()).logError(eq(entity), any());
+      verify(mockRequestInterceptor, never()).logSuccess(any());
+    });
   }
 
   @Test
@@ -104,10 +112,12 @@ class AbstractAsyncWriterTest {
 
     testFailureWriter.execute(entity);
 
-    verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
-    verify(mockErrorRecoverer, times(1)).recover(any());
-    verify(mockRequestInterceptor, never()).logError(eq(entity), any());
-    verify(mockRequestInterceptor, never()).logSuccess(any());
+    Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
+      verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
+      verify(mockErrorRecoverer, times(1)).recover(any());
+      verify(mockRequestInterceptor, never()).logError(eq(entity), any());
+      verify(mockRequestInterceptor, never()).logSuccess(any());
+    });
   }
 
   @Test
@@ -122,10 +132,12 @@ class AbstractAsyncWriterTest {
 
     testFailureWriter.execute(entity);
 
-    verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
-    verify(mockErrorRecoverer, times(1)).recover(any());
-    verify(mockRequestInterceptor, never()).logError(eq(entity), any());
-    verify(mockRequestInterceptor, never()).logSuccess(any());
+    Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
+      verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
+      verify(mockErrorRecoverer, times(1)).recover(any());
+      verify(mockRequestInterceptor, never()).logError(eq(entity), any());
+      verify(mockRequestInterceptor, never()).logSuccess(any());
+    });
   }
 
   @Test
@@ -138,10 +150,12 @@ class AbstractAsyncWriterTest {
 
     testWriterWithoutBackoffAndRecoverer.execute(entity);
 
-    verify(mockBackoffExecutor, never()).execute(any(Runnable.class));
-    verify(mockErrorRecoverer, never()).recover(any());
-    verify(mockRequestInterceptor, times(1)).logError(eq(entity), any());
-    verify(mockRequestInterceptor, never()).logSuccess(any());
+    Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
+      verify(mockBackoffExecutor, never()).execute(any(Runnable.class));
+      verify(mockErrorRecoverer, never()).recover(any());
+      verify(mockRequestInterceptor, times(1)).logError(eq(entity), any());
+      verify(mockRequestInterceptor, never()).logSuccess(any());
+    });
   }
 
 

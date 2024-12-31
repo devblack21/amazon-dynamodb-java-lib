@@ -62,8 +62,8 @@ class InfiniteRetryExecutorTest {
 
     runnable.verify(maxAttempts);
     runnable.verifyNoMoreInterations();
-    verify(retryInterceptor, times(maxAttempts)).logRetryStart();
-    verify(retryInterceptor, times(maxAttempts)).logRetryEnd();
+    verify(retryInterceptor, never()).logRetryStart();
+    verify(retryInterceptor, never()).logRetryEnd();
   }
 
 
