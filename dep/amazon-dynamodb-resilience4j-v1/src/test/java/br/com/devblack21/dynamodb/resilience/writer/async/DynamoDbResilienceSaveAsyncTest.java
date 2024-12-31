@@ -2,6 +2,7 @@ package br.com.devblack21.dynamodb.resilience.writer.async;
 
 import br.com.devblack21.dynamodb.resilience.backoff.BackoffExecutor;
 import br.com.devblack21.dynamodb.resilience.backoff.ErrorRecoverer;
+import br.com.devblack21.dynamodb.resilience.factory.SaveClientFactory;
 import br.com.devblack21.dynamodb.resilience.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.resilience.writer.DynamoDbResilienceSave;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
@@ -48,7 +49,7 @@ class DynamoDbResilienceSaveAsyncTest {
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
-    testWriter = new DynamoDbResilienceSaveAsync<>(
+    testWriter = SaveClientFactory.createAsyncClient(
       dynamoDBMapper,
       mockBackoffExecutor,
       mockErrorRecoverer,
@@ -56,7 +57,7 @@ class DynamoDbResilienceSaveAsyncTest {
       mockRequestInterceptor
     );
 
-    testWriterWithoutBackoffAndRecoverer = new DynamoDbResilienceSaveAsync<>(
+    testWriterWithoutBackoffAndRecoverer = SaveClientFactory.createAsyncClient(
       dynamoDBMapper,
       null,
       null,

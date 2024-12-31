@@ -2,9 +2,9 @@ package br.com.devblack21.dynamodb.resilience.writer.async;
 
 import br.com.devblack21.dynamodb.resilience.backoff.BackoffExecutor;
 import br.com.devblack21.dynamodb.resilience.backoff.ErrorRecoverer;
+import br.com.devblack21.dynamodb.resilience.factory.BatchSaveClientFactory;
 import br.com.devblack21.dynamodb.resilience.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.resilience.writer.DynamoDbResilienceBatchSave;
-import br.com.devblack21.dynamodb.resilience.writer.DynamoDbResilienceSave;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
@@ -49,7 +49,7 @@ class DynamoDbResilienceBatchSaveAsyncTest {
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
-    testWriter = new DynamoDbResilienceBatchSaveAsync<>(
+    testWriter = BatchSaveClientFactory.createAsyncClient(
       dynamoDBMapper,
       mockBackoffExecutor,
       mockErrorRecoverer,
@@ -57,7 +57,7 @@ class DynamoDbResilienceBatchSaveAsyncTest {
       mockRequestInterceptor
     );
 
-    testWriterWithoutBackoffAndRecoverer = new DynamoDbResilienceBatchSaveAsync<>(
+    testWriterWithoutBackoffAndRecoverer = BatchSaveClientFactory.createAsyncClient(
       dynamoDBMapper,
       null,
       null,
