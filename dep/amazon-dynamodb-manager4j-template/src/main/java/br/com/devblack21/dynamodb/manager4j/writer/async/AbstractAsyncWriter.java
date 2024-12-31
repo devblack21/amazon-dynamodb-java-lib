@@ -1,31 +1,36 @@
-package br.com.devblack21.dynamodb.manager4j.writer.sync;
+package br.com.devblack21.dynamodb.manager4j.writer.async;
 
+import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.resilience.BackoffExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.ErrorRecoverer;
-import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import lombok.RequiredArgsConstructor;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+
 @RequiredArgsConstructor
-abstract class AbstractSyncWriter<T> {
+abstract class AbstractAsyncWriter<T> {
 
   private final BackoffExecutor backoffExecutor;
   private final ErrorRecoverer<T> errorRecoverer;
+  private final ExecutorService executorService;
   private final RequestInterceptor<T> requestInterceptor;
 
   public void execute(final T entity) {
-    try {
-      this.executor(entity);
-    } catch (final Exception initialException) {
-      this.handleSaveFailure(entity, initialException);
-    }
+    CompletableFuture.runAsync(() -> executor(entity), executorService)
+      .whenComplete((unused, throwable) -> {
+        if (throwable != null) {
+          this.handleSaveFailure(entity, throwable);
+        }
+      });
   }
 
   public abstract void executor(final T entity);
 
-  private void handleSaveFailure(final T entity, final Exception initialException) {
+  private void handleSaveFailure(final T entity, final Throwable initialException) {
     if (this.backoffExecutor != null) {
       try {
-        this.backoffExecutor.execute(() -> executor(entity));
+        this.backoffExecutor.execute(() -> this.executor(entity));
       } catch (final Exception retryException) {
         this.handleRecoveryOrThrow(entity, retryException);
       }
@@ -34,13 +39,11 @@ abstract class AbstractSyncWriter<T> {
     }
   }
 
-  private void handleRecoveryOrThrow(final T entity, final Exception exceptionToHandle) {
+  private void handleRecoveryOrThrow(final T entity, final Throwable exceptionToHandle) {
     if (this.errorRecoverer != null) {
       this.errorRecoverer.recover(entity);
-      this.logError(entity, exceptionToHandle);
     } else {
       this.logError(entity, exceptionToHandle);
-      throw new RuntimeException("Failed to save entity after retry attempts.", exceptionToHandle);
     }
   }
 

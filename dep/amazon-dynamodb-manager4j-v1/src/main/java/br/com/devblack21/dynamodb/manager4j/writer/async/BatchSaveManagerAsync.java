@@ -1,8 +1,8 @@
 package br.com.devblack21.dynamodb.manager4j.writer.async;
 
+import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.resilience.BackoffExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.ErrorRecoverer;
-import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.writer.BatchSaveManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 

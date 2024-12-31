@@ -1,8 +1,8 @@
 package br.com.devblack21.dynamodb.manager4j.factory;
 
+import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.resilience.BackoffExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.ErrorRecoverer;
-import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.writer.BatchDeleteManager;
 import br.com.devblack21.dynamodb.manager4j.writer.async.BatchDeleteManagerAsync;
 import br.com.devblack21.dynamodb.manager4j.writer.sync.BatchDeleteManagerSync;
@@ -13,9 +13,9 @@ import java.util.concurrent.ExecutorService;
 public class BatchDeleteClientFactory {
 
   public static <T> BatchDeleteManager<T> createSyncClient(final DynamoDBMapper dynamoDBMapper,
-                                                        final BackoffExecutor backoffExecutor,
-                                                        final ErrorRecoverer<T> errorRecoverer,
-                                                        final RequestInterceptor<T> requestInterceptor) {
+                                                           final BackoffExecutor backoffExecutor,
+                                                           final ErrorRecoverer<T> errorRecoverer,
+                                                           final RequestInterceptor<T> requestInterceptor) {
     return new BatchDeleteManagerSync<>(dynamoDBMapper, backoffExecutor, errorRecoverer, requestInterceptor);
   }
 

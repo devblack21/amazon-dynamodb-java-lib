@@ -1,4 +1,4 @@
-package br.com.devblack21.dynamodb.manager4j.resilience;
+package br.com.devblack21.dynamodb.manager4j.resilience.algorithm;
 
 import java.util.Random;
 

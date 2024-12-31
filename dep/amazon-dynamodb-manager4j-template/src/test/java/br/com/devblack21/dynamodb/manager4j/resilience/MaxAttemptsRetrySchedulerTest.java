@@ -5,6 +5,7 @@ import br.com.devblack21.dynamodb.manager4j.helper.mock.FailureRunnableMock;
 import br.com.devblack21.dynamodb.manager4j.helper.mock.FailureSuccessRunnableMock;
 import br.com.devblack21.dynamodb.manager4j.helper.mock.SuccessRunnableMock;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RetryInterceptor;
+import br.com.devblack21.dynamodb.manager4j.resilience.algorithm.BackoffDelayAlgorithm;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

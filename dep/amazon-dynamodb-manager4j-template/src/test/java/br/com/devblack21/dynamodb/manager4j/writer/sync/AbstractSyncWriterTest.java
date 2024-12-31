@@ -1,9 +1,9 @@
 package br.com.devblack21.dynamodb.manager4j.writer.sync;
 
 
+import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.resilience.BackoffExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.ErrorRecoverer;
-import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -1,8 +1,8 @@
 package br.com.devblack21.dynamodb.manager4j.factory;
 
+import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.resilience.BackoffExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.ErrorRecoverer;
-import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.writer.SaveManager;
 import br.com.devblack21.dynamodb.manager4j.writer.async.SaveManagerAsync;
 import br.com.devblack21.dynamodb.manager4j.writer.sync.SaveManagerSync;

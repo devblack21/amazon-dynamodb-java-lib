@@ -21,6 +21,10 @@
             <artifactId>aws-java-sdk-dynamodb</artifactId>
             <version>1.12.780</version>
         </dependency>
+        <dependency>
+            <groupId>com.devblack21</groupId>
+            <artifactId>amazon-dynamodb-manager4j-template</artifactId>
+        </dependency>
     </dependencies>
 
 
