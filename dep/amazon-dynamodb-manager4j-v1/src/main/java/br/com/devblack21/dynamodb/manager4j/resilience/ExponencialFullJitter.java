@@ -17,7 +17,7 @@ public class ExponencialFullJitter implements BackoffDelayAlgorithm {
   @Override
   public int delay(final int retries) {
     final int maxDelay = Math.min(this.baseDelay * (1 << retries), this.maxBackoff);
-    return this.random.nextInt(0, this.getBound(maxDelay + 1));
+    return this.random.nextInt(this.getBound(maxDelay + 1));
   }
 
   private int getBound(final int maxDelay) {
