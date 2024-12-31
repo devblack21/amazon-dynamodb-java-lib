@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutorService;
 
 public class BatchDeleteClientFactory {
 
-  static <T> DynamoDbResilienceBatchDelete<T> createSyncClient(final DynamoDBMapper dynamoDBMapper,
+  public static <T> DynamoDbResilienceBatchDelete<T> createSyncClient(final DynamoDBMapper dynamoDBMapper,
                                                         final BackoffExecutor backoffExecutor,
                                                         final ErrorRecoverer<T> errorRecoverer,
                                                         final RequestInterceptor<T> requestInterceptor) {
@@ -20,24 +20,24 @@ public class BatchDeleteClientFactory {
   }
 
 
-  static <T> DynamoDbResilienceBatchDelete<T> createSyncClient(final DynamoDBMapper dynamoDBMapper,
+  public static <T> DynamoDbResilienceBatchDelete<T> createSyncClient(final DynamoDBMapper dynamoDBMapper,
                                                         final BackoffExecutor backoffExecutor,
                                                         final RequestInterceptor<T> requestInterceptor) {
     return createSyncClient(dynamoDBMapper, backoffExecutor, null, requestInterceptor);
   }
 
-  static <T> DynamoDbResilienceBatchDelete<T> createSyncClient(final DynamoDBMapper dynamoDBMapper,
+  public static <T> DynamoDbResilienceBatchDelete<T> createSyncClient(final DynamoDBMapper dynamoDBMapper,
                                                         final ErrorRecoverer<T> errorRecoverer,
                                                         final RequestInterceptor<T> requestInterceptor) {
     return createSyncClient(dynamoDBMapper, null, errorRecoverer, requestInterceptor);
   }
 
-  static <T> DynamoDbResilienceBatchDelete<T> createSyncClient(final DynamoDBMapper dynamoDBMapper) {
+  public static <T> DynamoDbResilienceBatchDelete<T> createSyncClient(final DynamoDBMapper dynamoDBMapper) {
     return createSyncClient(dynamoDBMapper, null, null, null);
   }
 
 
-  static <T> DynamoDbResilienceBatchDelete<T> createAsyncClient(final DynamoDBMapper dynamoDBMapper,
+  public static <T> DynamoDbResilienceBatchDelete<T> createAsyncClient(final DynamoDBMapper dynamoDBMapper,
                                                          final BackoffExecutor backoffExecutor,
                                                          final ErrorRecoverer<T> errorRecoverer,
                                                          final ExecutorService executorService,
@@ -46,21 +46,21 @@ public class BatchDeleteClientFactory {
   }
 
 
-  static <T> DynamoDbResilienceBatchDelete<T> createAsyncClient(final DynamoDBMapper dynamoDBMapper,
+  public static <T> DynamoDbResilienceBatchDelete<T> createAsyncClient(final DynamoDBMapper dynamoDBMapper,
                                                          final BackoffExecutor backoffExecutor,
                                                          final ExecutorService executorService,
                                                          final RequestInterceptor<T> requestInterceptor) {
     return createAsyncClient(dynamoDBMapper, backoffExecutor, null, executorService, requestInterceptor);
   }
 
-  static <T> DynamoDbResilienceBatchDelete<T> createAsyncClient(final DynamoDBMapper dynamoDBMapper,
+  public static <T> DynamoDbResilienceBatchDelete<T> createAsyncClient(final DynamoDBMapper dynamoDBMapper,
                                                          final ErrorRecoverer<T> errorRecoverer,
                                                          final ExecutorService executorService,
                                                          final RequestInterceptor<T> requestInterceptor) {
     return createAsyncClient(dynamoDBMapper, null, errorRecoverer, executorService, requestInterceptor);
   }
 
-  static <T> DynamoDbResilienceBatchDelete<T> createAsyncClient(final DynamoDBMapper dynamoDBMapper, final ExecutorService executorService) {
+  public static <T> DynamoDbResilienceBatchDelete<T> createAsyncClient(final DynamoDBMapper dynamoDBMapper, final ExecutorService executorService) {
     return createAsyncClient(dynamoDBMapper, null, null, executorService, null);
   }
 }
