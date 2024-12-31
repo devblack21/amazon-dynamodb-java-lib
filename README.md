@@ -1,1 +1,1 @@
-# amazon-dynamodb-jmanager4j
+# amazon-dynamodb-manager4j
