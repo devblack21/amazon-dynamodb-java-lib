@@ -1,6 +1,5 @@
 package br.com.devblack21.dynamodb.resilience.backoff;
 
-import br.com.devblack21.dynamodb.resilience.exception.MaxAttemptsRetryException;
 import br.com.devblack21.dynamodb.resilience.interceptor.RetryInterceptor;
 import lombok.RequiredArgsConstructor;
 
@@ -17,11 +16,7 @@ public class InfiniteRetryScheduler implements BackoffExecutor {
 
   @Override
   public void execute(final Runnable runnable) throws ExecutionException, InterruptedException {
-    try {
-      this.executeWithRetry(runnable, 0);
-    } finally {
-      scheduledExecutorService.shutdown();
-    }
+    this.executeWithRetry(runnable, 0);
   }
 
   private void executeWithRetry(final Runnable runnable, final int attemptCount) throws ExecutionException, InterruptedException {
@@ -41,8 +36,6 @@ public class InfiniteRetryScheduler implements BackoffExecutor {
     this.scheduledExecutorService.schedule(() -> {
         try {
           executeWithRetry(runnable, nextAttemptCount);
-        } catch (final MaxAttemptsRetryException e) {
-          throw e;
         } catch (final Exception e) {
           throw new RuntimeException(e);
         }

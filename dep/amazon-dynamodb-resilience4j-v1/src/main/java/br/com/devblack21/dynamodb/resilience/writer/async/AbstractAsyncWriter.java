@@ -3,7 +3,6 @@ package br.com.devblack21.dynamodb.resilience.writer.async;
 import br.com.devblack21.dynamodb.resilience.backoff.BackoffExecutor;
 import br.com.devblack21.dynamodb.resilience.backoff.ErrorRecoverer;
 import br.com.devblack21.dynamodb.resilience.interceptor.RequestInterceptor;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import java.util.concurrent.CompletableFuture;
@@ -31,7 +30,7 @@ abstract class AbstractAsyncWriter<T> {
   private void handleSaveFailure(final T entity, final Throwable initialException) {
     if (this.backoffExecutor != null) {
       try {
-        this.backoffExecutor.execute(() -> executor(entity));
+        this.backoffExecutor.execute(() -> this.executor(entity));
       } catch (final Exception retryException) {
         this.handleRecoveryOrThrow(entity, retryException);
       }
