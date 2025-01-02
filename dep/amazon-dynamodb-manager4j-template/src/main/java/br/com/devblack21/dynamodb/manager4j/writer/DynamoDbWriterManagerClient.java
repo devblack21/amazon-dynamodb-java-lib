@@ -2,6 +2,8 @@ package br.com.devblack21.dynamodb.manager4j.writer;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 public class DynamoDbWriterManagerClient<T> implements DynamoDbWriterManager<T> {
 
@@ -16,7 +18,7 @@ public class DynamoDbWriterManagerClient<T> implements DynamoDbWriterManager<T> 
   }
 
   @Override
-  public void batchSave(final T entity) {
+  public void batchSave(final List<T> entity) {
     this.batchSaveManager.batchSave(entity);
   }
 
@@ -26,7 +28,7 @@ public class DynamoDbWriterManagerClient<T> implements DynamoDbWriterManager<T> 
   }
 
   @Override
-  public void batchDelete(final T entity) {
+  public void batchDelete(final List<T>  entity) {
     this.dynamoDbResilienceBatchDelete.batchDelete(entity);
   }
 

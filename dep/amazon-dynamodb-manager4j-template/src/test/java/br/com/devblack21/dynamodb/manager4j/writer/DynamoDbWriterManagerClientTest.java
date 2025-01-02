@@ -3,6 +3,8 @@ package br.com.devblack21.dynamodb.manager4j.writer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.mockito.Mockito.*;
 
 class DynamoDbWriterManagerClientTest {
@@ -42,9 +44,9 @@ class DynamoDbWriterManagerClientTest {
   void testBatchSave() {
     Object entity = new Object();
 
-    client.batchSave(entity);
+    client.batchSave(List.of(entity));
 
-    verify(dynamoDbResilienceBatchSave).batchSave(entity);
+    verify(dynamoDbResilienceBatchSave).batchSave(List.of(entity));
     verifyNoMoreInteractions(dynamoDbResilienceBatchSave);
   }
 
@@ -62,9 +64,9 @@ class DynamoDbWriterManagerClientTest {
   void testBatchDelete() {
     Object entity = new Object();
 
-    client.batchDelete(entity);
+    client.batchDelete(List.of(entity));
 
-    verify(dynamoDbResilienceBatchDelete).batchDelete(entity);
+    verify(dynamoDbResilienceBatchDelete).batchDelete(List.of(entity));
     verifyNoMoreInteractions(dynamoDbResilienceBatchDelete);
   }
 

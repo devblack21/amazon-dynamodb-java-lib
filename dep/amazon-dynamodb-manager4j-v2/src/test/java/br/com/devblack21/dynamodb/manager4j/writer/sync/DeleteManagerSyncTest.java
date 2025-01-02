@@ -1,46 +1,45 @@
 package br.com.devblack21.dynamodb.manager4j.writer.sync;
 
-import br.com.devblack21.dynamodb.manager4j.factory.BatchDeleteClientFactory;
+import br.com.devblack21.dynamodb.manager4j.factory.DeleteClientFactory;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.resilience.BackoffExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.ErrorRecoverer;
-import br.com.devblack21.dynamodb.manager4j.writer.BatchDeleteManager;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import br.com.devblack21.dynamodb.manager4j.writer.DeleteManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static org.mockito.Mockito.*;
 
-class BatchDeleteManagerSyncTest {
+class DeleteManagerSyncTest {
 
-  private DynamoDBMapper dynamoDBMapper;
+  private DynamoDbTable<Object> dynamoDBMTable;
   private BackoffExecutor mockBackoffExecutor;
-  private ErrorRecoverer<List<Object>> mockErrorRecoverer;
-  private RequestInterceptor<List<Object>> mockRequestInterceptor;
-  private BatchDeleteManager<Object> testWriter;
-  private BatchDeleteManager<Object> testWriterWithoutBackoffAndRecoverer;
+  private ErrorRecoverer<Object> mockErrorRecoverer;
+  private RequestInterceptor<Object> mockRequestInterceptor;
+  private DeleteManager<Object> testWriter;
+  private DeleteManager<Object> testWriterWithoutBackoffAndRecoverer;
 
   @BeforeEach
   void setUp() {
-    dynamoDBMapper = mock(DynamoDBMapper.class);
+    dynamoDBMTable = mock(DynamoDbTable.class);
     mockBackoffExecutor = mock(BackoffExecutor.class);
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
-    testWriter = BatchDeleteClientFactory.createSyncClient(
-      dynamoDBMapper,
+    testWriter = DeleteClientFactory.createSyncClient(
+      dynamoDBMTable,
       mockBackoffExecutor,
       mockErrorRecoverer,
       mockRequestInterceptor
     );
 
-    testWriterWithoutBackoffAndRecoverer = BatchDeleteClientFactory.createSyncClient(
-      dynamoDBMapper,
+    testWriterWithoutBackoffAndRecoverer = DeleteClientFactory.createSyncClient(
+      dynamoDBMTable,
       null,
       null,
       mockRequestInterceptor
@@ -51,10 +50,10 @@ class BatchDeleteManagerSyncTest {
   void shouldExecuteSuccessfullyWithoutErrors() {
     final Object entity = new Object();
 
-    testWriter.batchDelete(List.of(entity));
+    testWriter.delete(entity);
 
     verifyNoInteractions(mockBackoffExecutor, mockErrorRecoverer);
-    verify(mockRequestInterceptor, times(1)).logSuccess(anyList());
+    verify(mockRequestInterceptor, times(1)).logSuccess(entity);
     verify(mockRequestInterceptor, never()).logError(any(), any());
   }
 
@@ -65,14 +64,11 @@ class BatchDeleteManagerSyncTest {
     simulateDynamoDbFailure();
     captureRunnableForRetry();
 
-    testWriter.batchDelete(List.of(entity));
-
+    testWriter.delete(entity);
 
     verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
     verifyNoInteractions(mockErrorRecoverer);
-    verify(mockRequestInterceptor, never()).logError(anyList(), any());
-
-
+    verify(mockRequestInterceptor, never()).logError(eq(entity), any());
   }
 
   @Test
@@ -82,12 +78,12 @@ class BatchDeleteManagerSyncTest {
     simulateDynamoDbFailure();
     simulateBackoffFailure();
 
-    testWriter.batchDelete(List.of(entity));
+    testWriter.delete(entity);
 
 
     verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
-    verify(mockErrorRecoverer, times(1)).recover(anyList());
-    verify(mockRequestInterceptor, times(1)).logError(anyList(), any(RuntimeException.class));
+    verify(mockErrorRecoverer, times(1)).recover(entity);
+    verify(mockRequestInterceptor, times(1)).logError(any(Object.class), any(RuntimeException.class));
 
   }
 
@@ -99,12 +95,12 @@ class BatchDeleteManagerSyncTest {
     simulateBackoffFailure();
     simulateRecoveryFailure();
 
-    Assertions.assertThrows(RuntimeException.class, () -> testWriter.batchDelete(List.of(entity)));
+    Assertions.assertThrows(RuntimeException.class, () -> testWriter.delete(entity));
 
 
     verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
-    verify(mockErrorRecoverer, times(1)).recover(anyList());
-    verify(mockRequestInterceptor, never()).logError(anyList(), any());
+    verify(mockErrorRecoverer, times(1)).recover(entity);
+    verify(mockRequestInterceptor, never()).logError(eq(entity), any());
     verify(mockRequestInterceptor, never()).logSuccess(any());
 
   }
@@ -115,15 +111,15 @@ class BatchDeleteManagerSyncTest {
 
     simulateDynamoDbFailure();
 
-    Assertions.assertThrows(RuntimeException.class, () -> testWriterWithoutBackoffAndRecoverer.batchDelete(List.of(entity)));
+    Assertions.assertThrows(RuntimeException.class, () -> testWriterWithoutBackoffAndRecoverer.delete(entity));
 
     verifyNoInteractions(mockBackoffExecutor, mockErrorRecoverer);
-    verify(mockRequestInterceptor, times(1)).logError(anyList(), any());
+    verify(mockRequestInterceptor, times(1)).logError(eq(entity), any());
 
   }
 
   private void simulateDynamoDbFailure() {
-    doThrow(RuntimeException.class).when(dynamoDBMapper).batchDelete(anyList());
+    doThrow(RuntimeException.class).when(dynamoDBMTable).putItem(any(Object.class));
   }
 
   private void simulateBackoffFailure() throws ExecutionException, InterruptedException {

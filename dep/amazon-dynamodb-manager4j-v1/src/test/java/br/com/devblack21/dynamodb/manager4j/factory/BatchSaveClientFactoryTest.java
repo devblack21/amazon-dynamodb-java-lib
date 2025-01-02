@@ -10,6 +10,7 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -20,8 +21,8 @@ class BatchSaveClientFactoryTest {
 
   private final DynamoDBMapper dynamoDBMapper = Mockito.mock(DynamoDBMapper.class);
   private final BackoffExecutor backoffExecutor = Mockito.mock(BackoffExecutor.class);
-  private final ErrorRecoverer<Object> errorRecoverer = Mockito.mock(ErrorRecoverer.class);
-  private final RequestInterceptor<Object> requestInterceptor = Mockito.mock(RequestInterceptor.class);
+  private final ErrorRecoverer<List<Object>> errorRecoverer = Mockito.mock(ErrorRecoverer.class);
+  private final RequestInterceptor<List<Object>> requestInterceptor = Mockito.mock(RequestInterceptor.class);
   private final ExecutorService executorService = Mockito.mock(ExecutorService.class);
 
   @Test

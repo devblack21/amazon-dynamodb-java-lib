@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static org.mockito.Mockito.*;
@@ -19,8 +20,8 @@ class BatchSaveManagerSyncTest {
 
   private DynamoDBMapper dynamoDBMapper;
   private BackoffExecutor mockBackoffExecutor;
-  private ErrorRecoverer<Object> mockErrorRecoverer;
-  private RequestInterceptor<Object> mockRequestInterceptor;
+  private ErrorRecoverer<List<Object>> mockErrorRecoverer;
+  private RequestInterceptor<List<Object>> mockRequestInterceptor;
   private BatchSaveManager<Object> testWriter;
   private BatchSaveManager<Object> testWriterWithoutBackoffAndRecoverer;
 
@@ -50,10 +51,10 @@ class BatchSaveManagerSyncTest {
   void shouldExecuteSuccessfullyWithoutErrors() {
     final Object entity = new Object();
 
-    testWriter.batchSave(entity);
+    testWriter.batchSave(List.of(entity));
 
     verifyNoInteractions(mockBackoffExecutor, mockErrorRecoverer);
-    verify(mockRequestInterceptor, times(1)).logSuccess(entity);
+    verify(mockRequestInterceptor, times(1)).logSuccess(anyList());
     verify(mockRequestInterceptor, never()).logError(any(), any());
   }
 
@@ -64,11 +65,11 @@ class BatchSaveManagerSyncTest {
     simulateDynamoDbFailure();
     captureRunnableForRetry();
 
-    testWriter.batchSave(entity);
+    testWriter.batchSave(List.of(entity));
 
     verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
     verifyNoInteractions(mockErrorRecoverer);
-    verify(mockRequestInterceptor, never()).logError(eq(entity), any());
+    verify(mockRequestInterceptor, never()).logError(anyList(), any());
   }
 
   @Test
@@ -78,11 +79,11 @@ class BatchSaveManagerSyncTest {
     simulateDynamoDbFailure();
     simulateBackoffFailure();
 
-    testWriter.batchSave(entity);
+    testWriter.batchSave(List.of(entity));
 
     verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
-    verify(mockErrorRecoverer, times(1)).recover(entity);
-    verify(mockRequestInterceptor, times(1)).logError(any(Object.class), any(RuntimeException.class));
+    verify(mockErrorRecoverer, times(1)).recover(anyList());
+    verify(mockRequestInterceptor, times(1)).logError(anyList(), any(RuntimeException.class));
   }
 
   @Test
@@ -93,11 +94,11 @@ class BatchSaveManagerSyncTest {
     simulateBackoffFailure();
     simulateRecoveryFailure();
 
-    Assertions.assertThrows(RuntimeException.class, () -> testWriter.batchSave(entity));
+    Assertions.assertThrows(RuntimeException.class, () -> testWriter.batchSave(List.of(entity)));
 
     verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
-    verify(mockErrorRecoverer, times(1)).recover(entity);
-    verify(mockRequestInterceptor, never()).logError(eq(entity), any());
+    verify(mockErrorRecoverer, times(1)).recover(anyList());
+    verify(mockRequestInterceptor, never()).logError(anyList(), any());
     verify(mockRequestInterceptor, never()).logSuccess(any());
   }
 
@@ -107,15 +108,15 @@ class BatchSaveManagerSyncTest {
 
     simulateDynamoDbFailure();
 
-    Assertions.assertThrows(RuntimeException.class, () -> testWriterWithoutBackoffAndRecoverer.batchSave(entity));
+    Assertions.assertThrows(RuntimeException.class, () -> testWriterWithoutBackoffAndRecoverer.batchSave(List.of(entity)));
 
     verifyNoInteractions(mockBackoffExecutor, mockErrorRecoverer);
-    verify(mockRequestInterceptor, times(1)).logError(eq(entity), any());
+    verify(mockRequestInterceptor, times(1)).logError(anyList(), any());
 
   }
 
   private void simulateDynamoDbFailure() {
-    doThrow(RuntimeException.class).when(dynamoDBMapper).batchSave(any(Object.class));
+    doThrow(RuntimeException.class).when(dynamoDBMapper).batchSave(anyList());
   }
 
   private void simulateBackoffFailure() throws ExecutionException, InterruptedException {

@@ -6,31 +6,30 @@ import br.com.devblack21.dynamodb.manager4j.resilience.ErrorRecoverer;
 import br.com.devblack21.dynamodb.manager4j.writer.BatchSaveManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 
-public class BatchSaveManagerAsync<T> extends AbstractAsyncWriter<T> implements BatchSaveManager<T> {
+public class BatchSaveManagerAsync<T> extends AbstractAsyncWriter<List<T>> implements BatchSaveManager<T> {
 
   private final DynamoDBMapper dynamoDBMapper;
-  private final RequestInterceptor<T> requestInterceptor;
 
   public BatchSaveManagerAsync(final DynamoDBMapper dynamoDBMapper,
                                final BackoffExecutor backoffExecutor,
-                               final ErrorRecoverer<T> errorRecoverer,
+                               final ErrorRecoverer<List<T>> errorRecoverer,
                                final ExecutorService executorService,
-                               final RequestInterceptor<T> requestInterceptor) {
+                               final RequestInterceptor<List<T>> requestInterceptor) {
     super(backoffExecutor, errorRecoverer, executorService, requestInterceptor);
     this.dynamoDBMapper = dynamoDBMapper;
-    this.requestInterceptor = requestInterceptor;
   }
 
   @Override
-  public void batchSave(final T entity) {
+  public void batchSave(final List<T> entity) {
     this.execute(entity);
   }
 
   @Override
-  public void executor(final T entity) {
+  public void executor(final List<T> entity) {
     this.dynamoDBMapper.batchSave(entity);
   }
 

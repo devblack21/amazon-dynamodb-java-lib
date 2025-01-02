@@ -8,27 +8,28 @@ import br.com.devblack21.dynamodb.manager4j.writer.async.BatchSaveManagerAsync;
 import br.com.devblack21.dynamodb.manager4j.writer.sync.BatchSaveManagerSync;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 public class BatchSaveClientFactory {
 
   public static <T> BatchSaveManager<T> createSyncClient(final DynamoDBMapper dynamoDBMapper,
                                                          final BackoffExecutor backoffExecutor,
-                                                         final ErrorRecoverer<T> errorRecoverer,
-                                                         final RequestInterceptor<T> requestInterceptor) {
+                                                         final ErrorRecoverer<List<T>> errorRecoverer,
+                                                         final RequestInterceptor<List<T>> requestInterceptor) {
     return new BatchSaveManagerSync<>(dynamoDBMapper, backoffExecutor, errorRecoverer, requestInterceptor);
   }
 
 
   public static <T> BatchSaveManager<T> createSyncClient(final DynamoDBMapper dynamoDBMapper,
                                                          final BackoffExecutor backoffExecutor,
-                                                         final RequestInterceptor<T> requestInterceptor) {
+                                                         final RequestInterceptor<List<T>> requestInterceptor) {
     return createSyncClient(dynamoDBMapper, backoffExecutor, null, requestInterceptor);
   }
 
   public static <T> BatchSaveManager<T> createSyncClient(final DynamoDBMapper dynamoDBMapper,
-                                                         final ErrorRecoverer<T> errorRecoverer,
-                                                         final RequestInterceptor<T> requestInterceptor) {
+                                                         final ErrorRecoverer<List<T>> errorRecoverer,
+                                                         final RequestInterceptor<List<T>> requestInterceptor) {
     return createSyncClient(dynamoDBMapper, null, errorRecoverer, requestInterceptor);
   }
 
@@ -39,9 +40,9 @@ public class BatchSaveClientFactory {
 
   public static <T> BatchSaveManager<T> createAsyncClient(final DynamoDBMapper dynamoDBMapper,
                                                           final BackoffExecutor backoffExecutor,
-                                                          final ErrorRecoverer<T> errorRecoverer,
+                                                          final ErrorRecoverer<List<T>> errorRecoverer,
                                                           final ExecutorService executorService,
-                                                          final RequestInterceptor<T> requestInterceptor) {
+                                                          final RequestInterceptor<List<T>> requestInterceptor) {
     return new BatchSaveManagerAsync<>(dynamoDBMapper, backoffExecutor, errorRecoverer, executorService, requestInterceptor);
   }
 
@@ -49,14 +50,14 @@ public class BatchSaveClientFactory {
   public static <T> BatchSaveManager<T> createAsyncClient(final DynamoDBMapper dynamoDBMapper,
                                                           final BackoffExecutor backoffExecutor,
                                                           final ExecutorService executorService,
-                                                          final RequestInterceptor<T> requestInterceptor) {
+                                                          final RequestInterceptor<List<T>> requestInterceptor) {
     return createAsyncClient(dynamoDBMapper, backoffExecutor, null, executorService, requestInterceptor);
   }
 
   public static <T> BatchSaveManager<T> createAsyncClient(final DynamoDBMapper dynamoDBMapper,
-                                                          final ErrorRecoverer<T> errorRecoverer,
+                                                          final ErrorRecoverer<List<T>> errorRecoverer,
                                                           final ExecutorService executorService,
-                                                          final RequestInterceptor<T> requestInterceptor) {
+                                                          final RequestInterceptor<List<T>> requestInterceptor) {
     return createAsyncClient(dynamoDBMapper, null, errorRecoverer, executorService, requestInterceptor);
   }
 
