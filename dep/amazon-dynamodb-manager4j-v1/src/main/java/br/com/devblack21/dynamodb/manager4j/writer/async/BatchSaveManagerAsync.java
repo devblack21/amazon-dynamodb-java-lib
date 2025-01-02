@@ -32,13 +32,6 @@ public class BatchSaveManagerAsync<T> extends AbstractAsyncWriter<T> implements 
   @Override
   public void executor(final T entity) {
     this.dynamoDBMapper.batchSave(entity);
-    this.logSuccess(entity);
-  }
-
-  private void logSuccess(final T entity) {
-    if (this.requestInterceptor != null) {
-      this.requestInterceptor.logSuccess(entity);
-    }
   }
 
 }

@@ -68,7 +68,7 @@ class AbstractAsyncWriterTest {
   }
 
   @Test
-  void shouldExecuteSuccessfullyWithoutErrors() throws ExecutionException, InterruptedException {
+  void shouldExecuteSuccessfullyWithoutErrors() {
 
     final Object entity = new Object();
 
@@ -77,7 +77,7 @@ class AbstractAsyncWriterTest {
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, never()).execute(any(Runnable.class));
       verify(mockErrorRecoverer, never()).recover(any());
-      verify(mockRequestInterceptor, never()).logSuccess(any());
+      verify(mockRequestInterceptor, times(1)).logSuccess(any());
       verify(mockRequestInterceptor, never()).logError(any(), any());
     });
   }
@@ -97,7 +97,7 @@ class AbstractAsyncWriterTest {
       verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
       verify(mockErrorRecoverer, never()).recover(any());
       verify(mockRequestInterceptor, never()).logError(eq(entity), any());
-      verify(mockRequestInterceptor, never()).logSuccess(any());
+      verify(mockRequestInterceptor, times(1)).logSuccess(any());
     });
   }
 

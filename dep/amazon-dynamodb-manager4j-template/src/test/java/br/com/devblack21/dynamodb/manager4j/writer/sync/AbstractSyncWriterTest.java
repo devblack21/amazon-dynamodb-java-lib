@@ -55,7 +55,7 @@ class AbstractSyncWriterTest {
 
     verify(mockBackoffExecutor, never()).execute(any(Runnable.class));
     verify(mockErrorRecoverer, never()).recover(any());
-    verify(mockRequestInterceptor, never()).logSuccess(any());
+    verify(mockRequestInterceptor, times(1)).logSuccess(any());
     verify(mockRequestInterceptor, never()).logError(any(), any());
   }
 
@@ -73,7 +73,7 @@ class AbstractSyncWriterTest {
     verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
     verify(mockErrorRecoverer, never()).recover(any());
     verify(mockRequestInterceptor, never()).logError(eq(entity), any());
-    verify(mockRequestInterceptor, never()).logSuccess(any());
+    verify(mockRequestInterceptor, times(1)).logSuccess(any());
   }
 
   @Test

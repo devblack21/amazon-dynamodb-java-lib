@@ -21,6 +21,8 @@ abstract class AbstractAsyncWriter<T> {
       .whenComplete((unused, throwable) -> {
         if (throwable != null) {
           this.handleSaveFailure(entity, throwable);
+        } else {
+          this.logSuccess(entity);
         }
       });
   }
@@ -31,6 +33,7 @@ abstract class AbstractAsyncWriter<T> {
     if (this.backoffExecutor != null) {
       try {
         this.backoffExecutor.execute(() -> this.executor(entity));
+        this.logSuccess(entity);
       } catch (final Exception retryException) {
         this.handleRecoveryOrThrow(entity, retryException);
       }
@@ -53,4 +56,9 @@ abstract class AbstractAsyncWriter<T> {
     }
   }
 
+  private void logSuccess(final T entity) {
+    if (this.requestInterceptor != null) {
+      this.requestInterceptor.logSuccess(entity);
+    }
+  }
 }

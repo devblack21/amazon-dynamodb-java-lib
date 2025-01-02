@@ -15,6 +15,7 @@ abstract class AbstractSyncWriter<T> {
   public void execute(final T entity) {
     try {
       this.executor(entity);
+      this.logSuccess(entity);
     } catch (final Exception initialException) {
       this.handleSaveFailure(entity, initialException);
     }
@@ -26,6 +27,7 @@ abstract class AbstractSyncWriter<T> {
     if (this.backoffExecutor != null) {
       try {
         this.backoffExecutor.execute(() -> executor(entity));
+        this.logSuccess(entity);
       } catch (final Exception retryException) {
         this.handleRecoveryOrThrow(entity, retryException);
       }
@@ -47,6 +49,12 @@ abstract class AbstractSyncWriter<T> {
   private void logError(final T entity, final Throwable throwable) {
     if (this.requestInterceptor != null) {
       this.requestInterceptor.logError(entity, throwable);
+    }
+  }
+
+  private void logSuccess(final T entity) {
+    if (this.requestInterceptor != null) {
+      this.requestInterceptor.logSuccess(entity);
     }
   }
 

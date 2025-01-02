@@ -12,7 +12,6 @@ import java.util.concurrent.ExecutorService;
 public class SaveManagerAsync<T> extends AbstractAsyncWriter<T> implements SaveManager<T> {
 
   private final DynamoDBMapper dynamoDBMapper;
-  private final RequestInterceptor<T> requestInterceptor;
 
   public SaveManagerAsync(final DynamoDBMapper dynamoDBMapper,
                           final BackoffExecutor backoffExecutor,
@@ -21,7 +20,6 @@ public class SaveManagerAsync<T> extends AbstractAsyncWriter<T> implements SaveM
                           final RequestInterceptor<T> requestInterceptor) {
     super(backoffExecutor, errorRecoverer, executorService, requestInterceptor);
     this.dynamoDBMapper = dynamoDBMapper;
-    this.requestInterceptor = requestInterceptor;
   }
 
   @Override
@@ -32,13 +30,6 @@ public class SaveManagerAsync<T> extends AbstractAsyncWriter<T> implements SaveM
   @Override
   public void executor(final T entity) {
     this.dynamoDBMapper.save(entity);
-    this.logSuccess(entity);
-  }
-
-  private void logSuccess(final T entity) {
-    if (this.requestInterceptor != null) {
-      this.requestInterceptor.logSuccess(entity);
-    }
   }
 
 }

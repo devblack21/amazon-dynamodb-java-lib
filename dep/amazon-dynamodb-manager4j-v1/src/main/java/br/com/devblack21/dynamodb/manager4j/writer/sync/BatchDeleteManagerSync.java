@@ -9,15 +9,12 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 public class BatchDeleteManagerSync<T> extends AbstractSyncWriter<T> implements BatchDeleteManager<T> {
 
   private final DynamoDBMapper dynamoDBMapper;
-  private final RequestInterceptor<T> requestInterceptor;
-
   public BatchDeleteManagerSync(final DynamoDBMapper dynamoDBMapper,
                                 final BackoffExecutor backoffExecutor,
                                 final ErrorRecoverer<T> errorRecoverer,
                                 final RequestInterceptor<T> requestInterceptor) {
     super(backoffExecutor, errorRecoverer, requestInterceptor);
     this.dynamoDBMapper = dynamoDBMapper;
-    this.requestInterceptor = requestInterceptor;
   }
 
 
@@ -29,13 +26,6 @@ public class BatchDeleteManagerSync<T> extends AbstractSyncWriter<T> implements 
   @Override
   public void executor(final T entity) {
     this.dynamoDBMapper.batchDelete(entity);
-    this.logSuccess(entity);
-  }
-
-  private void logSuccess(final T entity) {
-    if (this.requestInterceptor != null) {
-      this.requestInterceptor.logSuccess(entity);
-    }
   }
 
 }
