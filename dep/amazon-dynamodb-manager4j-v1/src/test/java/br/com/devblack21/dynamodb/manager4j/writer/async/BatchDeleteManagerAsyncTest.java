@@ -6,6 +6,9 @@ import br.com.devblack21.dynamodb.manager4j.resilience.backoff.batch.BackoffBatc
 import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
 import br.com.devblack21.dynamodb.manager4j.writer.BatchDeleteManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.PutRequest;
+import com.amazonaws.services.dynamodbv2.model.WriteRequest;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -13,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -116,6 +119,22 @@ class BatchDeleteManagerAsyncTest {
   }
 
   @Test
+  void testBatchSaveFailureWithUnprocessedItems() throws ExecutionException, InterruptedException {
+    final List<Object> items = Arrays.asList("Item1", "Item2");
+
+    simulateFailedBatch();
+
+    testWriter.batchDelete(items);
+
+    Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
+      verify(mockBackoffExecutor, times(1)).execute(any(Function.class), any());
+      verify(mockRequestInterceptor, never()).logError(anyList(), any());
+      verify(mockRequestInterceptor, times(1)).logSuccess(any());
+    });
+  }
+
+
+  @Test
   void shouldLogErrorWhenRecoveryFails() throws ExecutionException, InterruptedException {
     final Object entity = new Object();
 
@@ -163,6 +182,23 @@ class BatchDeleteManagerAsyncTest {
   private void captureRunnableForRetry() throws ExecutionException, InterruptedException {
     final ArgumentCaptor<Function<List<Object>, List<Object>>> captor = ArgumentCaptor.forClass(Function.class);
     doNothing().when(mockBackoffExecutor).execute(captor.capture(), anyList());
+  }
+
+  private void simulateFailedBatch() {
+
+    final List<DynamoDBMapper.FailedBatch> failedBatches = new ArrayList<>();
+    final DynamoDBMapper.FailedBatch failedBatch = mock(DynamoDBMapper.FailedBatch.class);
+    final Map<String, List<WriteRequest>> unprocessedItems = new HashMap<>();
+    final WriteRequest writeRequest = new WriteRequest();
+    writeRequest.setPutRequest(new PutRequest().withItem(Map.of("a", new AttributeValue("b"))));
+    unprocessedItems.put("TableName", List.of(writeRequest));
+
+    when(failedBatch.getUnprocessedItems()).thenReturn(unprocessedItems);
+    failedBatches.add(failedBatch);
+
+    when(dynamoDBMapper.batchDelete(anyList()))
+      .thenReturn(failedBatches)
+      .thenReturn(List.of());
   }
 
 }

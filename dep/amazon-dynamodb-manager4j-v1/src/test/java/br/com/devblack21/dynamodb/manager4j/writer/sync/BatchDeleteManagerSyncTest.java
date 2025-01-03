@@ -14,10 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
@@ -77,6 +74,19 @@ class BatchDeleteManagerSyncTest {
     verify(mockBackoffExecutor, times(1)).execute(any(Function.class), anyList());
     verifyNoInteractions(mockErrorRecoverer);
     verify(mockRequestInterceptor, never()).logError(anyList(), any());
+  }
+
+  @Test
+  void testBatchSaveFailureWithUnprocessedItems() throws ExecutionException, InterruptedException {
+    final List<Object> itemsToSave = Arrays.asList("Item1", "Item2");
+
+    simulateFailedBatch();
+
+    testWriter.batchDelete(itemsToSave);
+
+    verify(mockBackoffExecutor, times(1)).execute(any(Function.class), anyList());
+    verify(mockRequestInterceptor, never()).logError(anyList(), any());
+    verify(mockRequestInterceptor, times(1)).logSuccess(any());
   }
 
   @Test
@@ -156,7 +166,7 @@ class BatchDeleteManagerSyncTest {
     when(failedBatch.getUnprocessedItems()).thenReturn(unprocessedItems);
     failedBatches.add(failedBatch);
 
-    when(dynamoDBMapper.batchSave(anyList()))
+    when(dynamoDBMapper.batchDelete(anyList()))
       .thenReturn(failedBatches)
       .thenReturn(List.of());
   }
