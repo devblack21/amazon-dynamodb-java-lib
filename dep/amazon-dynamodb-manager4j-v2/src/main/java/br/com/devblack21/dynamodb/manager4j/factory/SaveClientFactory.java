@@ -3,8 +3,8 @@ package br.com.devblack21.dynamodb.manager4j.factory;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.resilience.backoff.single.BackoffSingleWriteExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
-import br.com.devblack21.dynamodb.manager4j.writer.SaveManager;
-import br.com.devblack21.dynamodb.manager4j.writer.sync.SaveManagerSync;
+import br.com.devblack21.dynamodb.manager4j.writer.simple.SaveManager;
+import br.com.devblack21.dynamodb.manager4j.writer.simple.sync.SaveManagerSync;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 
 public class SaveClientFactory {
