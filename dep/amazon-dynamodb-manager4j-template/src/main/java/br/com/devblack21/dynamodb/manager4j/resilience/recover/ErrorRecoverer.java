@@ -1,12 +1,14 @@
 package br.com.devblack21.dynamodb.manager4j.resilience.recover;
 
+import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
+
 import java.util.List;
 
-public interface ErrorRecoverer<T> {
+public interface ErrorRecoverer {
 
-  void recover(T object);
+  void recover(TableEntity object);
 
-  void recover(List<T> object);
+  void recover(List<? extends TableEntity> object);
 
 
 }

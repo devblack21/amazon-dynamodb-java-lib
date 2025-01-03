@@ -1,5 +1,6 @@
 package br.com.devblack21.dynamodb.manager4j.transform;
 
+import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper.FailedBatch;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
@@ -117,7 +118,7 @@ class FailedBatchPutRequestTransformerTest {
 
   @Getter
   @EqualsAndHashCode
-  static class MyItem {
+  static class MyItem implements TableEntity {
     private final String id;
     private final String name;
 

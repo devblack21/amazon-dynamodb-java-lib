@@ -1,5 +1,6 @@
 package br.com.devblack21.dynamodb.manager4j.transform;
 
+import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper.FailedBatch;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
-public class FailedBatchDeleteRequestTransformer<T> {
+public class FailedBatchDeleteRequestTransformer<T extends TableEntity> {
 
   private final DynamoDBMapper dynamoDBMapper;
   private final Class<T> ormClass;

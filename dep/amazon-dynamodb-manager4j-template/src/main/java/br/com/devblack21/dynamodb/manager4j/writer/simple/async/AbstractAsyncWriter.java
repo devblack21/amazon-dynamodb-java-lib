@@ -1,22 +1,21 @@
 package br.com.devblack21.dynamodb.manager4j.writer.simple.async;
 
+import br.com.devblack21.dynamodb.manager4j.configuration.WriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
-import br.com.devblack21.dynamodb.manager4j.resilience.backoff.single.BackoffSingleWriteExecutor;
-import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
+import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 import lombok.RequiredArgsConstructor;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 @RequiredArgsConstructor
-abstract class AbstractAsyncWriter<T> {
+abstract class AbstractAsyncWriter {
 
-  private final BackoffSingleWriteExecutor backoffExecutor;
-  private final ErrorRecoverer<T> errorRecoverer;
+  private final WriteRetryPolicyConfiguration retryPolicyConfiguration;
   private final ExecutorService executorService;
-  private final RequestInterceptor<T> requestInterceptor;
+  private final RequestInterceptor requestInterceptor;
 
-  public void execute(final T entity) {
+  public void execute(final TableEntity entity) {
     CompletableFuture.runAsync(() -> executor(entity), executorService)
       .whenComplete((unused, throwable) -> {
         if (throwable != null) {
@@ -27,12 +26,12 @@ abstract class AbstractAsyncWriter<T> {
       });
   }
 
-  public abstract void executor(final T entity);
+  public abstract void executor(final TableEntity entity);
 
-  private void handleSaveFailure(final T entity, final Throwable initialException) {
-    if (this.backoffExecutor != null) {
+  private void handleSaveFailure(final TableEntity entity, final Throwable initialException) {
+    if (this.isEnableBackoffExecutor()) {
       try {
-        this.backoffExecutor.execute(() -> this.executor(entity));
+        this.retryPolicyConfiguration.getBackoffSingleWriteExecutor().execute(() -> this.executor(entity));
         this.logSuccess(entity);
       } catch (final Exception retryException) {
         this.handleRecoveryOrThrow(entity, retryException);
@@ -42,23 +41,35 @@ abstract class AbstractAsyncWriter<T> {
     }
   }
 
-  private void handleRecoveryOrThrow(final T entity, final Throwable exceptionToHandle) {
-    if (this.errorRecoverer != null) {
-      this.errorRecoverer.recover(entity);
+  private void handleRecoveryOrThrow(final TableEntity entity, final Throwable exceptionToHandle) {
+    if (this.isEnableErrorRecoverer()) {
+      this.retryPolicyConfiguration.getErrorRecoverer().recover(entity);
     }
 
     this.logError(entity, exceptionToHandle);
   }
 
-  private void logError(final T entity, final Throwable throwable) {
+  private void logError(final TableEntity entity, final Throwable throwable) {
     if (this.requestInterceptor != null) {
       this.requestInterceptor.logError(entity, throwable);
     }
   }
 
-  private void logSuccess(final T entity) {
+  private void logSuccess(final TableEntity entity) {
     if (this.requestInterceptor != null) {
       this.requestInterceptor.logSuccess(entity);
     }
+  }
+
+  private boolean isEnableBackoffExecutor() {
+    return isEnableRetryPolicy() && this.retryPolicyConfiguration.isEnableBackoffSingleWriteExecutor();
+  }
+
+  private boolean isEnableErrorRecoverer() {
+    return isEnableRetryPolicy() && this.retryPolicyConfiguration.isEnableErrorRecoverer();
+  }
+
+  private boolean isEnableRetryPolicy() {
+    return this.retryPolicyConfiguration != null;
   }
 }

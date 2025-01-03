@@ -1,7 +1,9 @@
 package br.com.devblack21.dynamodb.manager4j.writer.simple.async;
 
-import br.com.devblack21.dynamodb.manager4j.factory.BatchSaveClientFactory;
+import br.com.devblack21.dynamodb.manager4j.configuration.WriteRetryPolicyConfiguration;
+import br.com.devblack21.dynamodb.manager4j.factory.BatchSaveClientAsyncFactory;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
+import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 import br.com.devblack21.dynamodb.manager4j.model.UnprocessedItem;
 import br.com.devblack21.dynamodb.manager4j.resilience.backoff.batch.BackoffBatchWriteExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
@@ -11,6 +13,8 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.PutRequest;
 import com.amazonaws.services.dynamodbv2.model.WriteRequest;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -32,12 +36,12 @@ class BatchSaveManagerAsyncTest {
   private final Integer TIMEOUT = 3;
 
   private DynamoDBMapper dynamoDBMapper;
-  private FailedBatchPutRequestTransformer<Object> transformer;
-  private BackoffBatchWriteExecutor<Object> mockBackoffExecutor;
-  private ErrorRecoverer<Object> mockErrorRecoverer;
-  private RequestInterceptor<Object> mockRequestInterceptor;
-  private BatchSaveManager<Object> testWriter;
-  private BatchSaveManager<Object> testWriterWithoutBackoffAndRecoverer;
+  private FailedBatchPutRequestTransformer<MyItem> transformer;
+  private BackoffBatchWriteExecutor mockBackoffExecutor;
+  private ErrorRecoverer mockErrorRecoverer;
+  private RequestInterceptor mockRequestInterceptor;
+  private BatchSaveManager testWriter;
+  private BatchSaveManager testWriterWithoutBackoffAndRecoverer;
   private static ExecutorService executorService;
 
   @BeforeAll
@@ -58,28 +62,25 @@ class BatchSaveManagerAsyncTest {
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
-    testWriter = BatchSaveClientFactory.createAsyncClient(
-      dynamoDBMapper,
+    testWriter = BatchSaveClientAsyncFactory.createClient(dynamoDBMapper,
       transformer,
-      mockBackoffExecutor,
-      mockErrorRecoverer,
+      WriteRetryPolicyConfiguration.builder()
+        .backoffBatchWriteExecutor(mockBackoffExecutor)
+        .errorRecoverer(mockErrorRecoverer)
+        .build(),
       executorService,
-      mockRequestInterceptor
-    );
+      mockRequestInterceptor);
 
-    testWriterWithoutBackoffAndRecoverer = BatchSaveClientFactory.createAsyncClient(
-      dynamoDBMapper,
+
+    testWriterWithoutBackoffAndRecoverer = BatchSaveClientAsyncFactory.createClient(dynamoDBMapper,
       transformer,
-      null,
-      null,
       executorService,
-      mockRequestInterceptor
-    );
+      mockRequestInterceptor);
   }
 
   @Test
   void shouldExecuteSuccessfullyWithoutErrors() {
-    final Object entity = new Object();
+    final MyItem entity = new MyItem("12", "");
 
     when(dynamoDBMapper.batchSave(anyList())).thenReturn(List.of());
 
@@ -96,7 +97,7 @@ class BatchSaveManagerAsyncTest {
 
   @Test
   void shouldRetryOnFailure() throws ExecutionException, InterruptedException {
-    final Object entity = new Object();
+    final MyItem entity = new MyItem("12", "");
 
     simulateDynamoDbFailure();
     captureRunnableForRetry();
@@ -113,7 +114,7 @@ class BatchSaveManagerAsyncTest {
 
   @Test
   void testBatchSaveFailureWithUnprocessedItems() throws ExecutionException, InterruptedException {
-    final List<Object> itemsToSave = Arrays.asList("Item1", "Item2");
+    final List<MyItem> itemsToSave = Arrays.asList(new MyItem("12", ""), new MyItem("12", ""));
 
     simulateFailedBatch();
 
@@ -122,14 +123,14 @@ class BatchSaveManagerAsyncTest {
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Function.class), anyList());
       verify(mockRequestInterceptor, never()).logError(anyList(), any());
-      verify(mockRequestInterceptor, times(1)).logSuccess(any());
+      verify(mockRequestInterceptor, times(1)).logSuccess(anyList());
     });
 
   }
 
   @Test
   void shouldRecoverOnFailureWhenBackoffExecutorFails() throws ExecutionException, InterruptedException {
-    final Object entity = new Object();
+    final MyItem entity = new MyItem("12", "");
 
     simulateDynamoDbFailure();
     simulateBackoffFailure();
@@ -145,7 +146,7 @@ class BatchSaveManagerAsyncTest {
 
   @Test
   void shouldLogErrorWhenRecoveryFails() throws ExecutionException, InterruptedException {
-    final Object entity = new Object();
+    final MyItem entity = new MyItem("12", "");
 
     simulateFailedBatch();
     simulateDynamoDbFailure();
@@ -157,14 +158,14 @@ class BatchSaveManagerAsyncTest {
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Function.class), anyList());
       verify(mockErrorRecoverer, times(1)).recover(anyList());
-      verify(mockRequestInterceptor, never()).logError(anyList(), any());
-      verify(mockRequestInterceptor, never()).logSuccess(any());
+      verify(mockRequestInterceptor, times(1)).logError(anyList(), any());
+      verify(mockRequestInterceptor, never()).logSuccess(anyList());
     });
   }
 
   @Test
   void shouldLogErrorWhenNoRecoveryAndNoBackoff() {
-    final Object entity = new Object();
+    final MyItem entity = new MyItem("12", "");
 
     simulateDynamoDbFailure();
 
@@ -186,29 +187,43 @@ class BatchSaveManagerAsyncTest {
     final DynamoDBMapper.FailedBatch failedBatch = mock(DynamoDBMapper.FailedBatch.class);
     final Map<String, List<WriteRequest>> unprocessedItems = new HashMap<>();
     final WriteRequest writeRequest = new WriteRequest();
-    writeRequest.setPutRequest(new PutRequest().withItem(Map.of("a", new AttributeValue("b"))));
+    writeRequest.setPutRequest(new PutRequest().withItem(Map.of("id", new AttributeValue("11"))));
     unprocessedItems.put("TableName", List.of(writeRequest));
 
     when(failedBatch.getUnprocessedItems()).thenReturn(unprocessedItems);
     failedBatches.add(failedBatch);
 
-    when(transformer.transform(anyList())).thenReturn(List.of("item"));
+    when(transformer.transform(anyList())).thenReturn(List.of(new MyItem("11", "")));
 
     when(dynamoDBMapper.batchSave(anyList()))
       .thenReturn(failedBatches)
       .thenReturn(List.of());
   }
+
   private void simulateBackoffFailure() throws ExecutionException, InterruptedException {
-   final ArgumentCaptor<Function<List<Object>, List<UnprocessedItem<Object>>>> captor = ArgumentCaptor.forClass(Function.class);
+    final ArgumentCaptor<Function<List<? extends TableEntity>, List<UnprocessedItem>>> captor = ArgumentCaptor.forClass(Function.class);
     doThrow(RuntimeException.class).when(mockBackoffExecutor).execute(captor.capture(), anyList());
   }
 
   private void simulateRecoveryFailure() {
-    doThrow(RuntimeException.class).when(mockErrorRecoverer).recover(any());
+    doThrow(RuntimeException.class).when(mockErrorRecoverer).recover(any(MyItem.class));
   }
 
   private void captureRunnableForRetry() throws ExecutionException, InterruptedException {
-   final ArgumentCaptor<Function<List<Object>, List<UnprocessedItem<Object>>>> captor = ArgumentCaptor.forClass(Function.class);
+    final ArgumentCaptor<Function<List<? extends TableEntity>, List<UnprocessedItem>>> captor = ArgumentCaptor.forClass(Function.class);
     doNothing().when(mockBackoffExecutor).execute(captor.capture(), anyList());
+  }
+
+  @Getter
+  @EqualsAndHashCode
+  static class MyItem implements TableEntity {
+    private final String id;
+    private final String name;
+
+    public MyItem(final String id, final String name) {
+      this.id = id;
+      this.name = name;
+    }
+
   }
 }

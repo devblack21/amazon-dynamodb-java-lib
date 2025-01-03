@@ -1,7 +1,10 @@
 package br.com.devblack21.dynamodb.manager4j.writer.simple.async;
 
 
+import br.com.devblack21.dynamodb.manager4j.configuration.WriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
+import br.com.devblack21.dynamodb.manager4j.model.MyItem;
+import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 import br.com.devblack21.dynamodb.manager4j.model.UnprocessedItem;
 import br.com.devblack21.dynamodb.manager4j.resilience.backoff.batch.BackoffBatchWriteExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
@@ -25,12 +28,12 @@ class AbstractAsyncBatchWriterTest {
 
   private final Integer TIMEOUT = 3;
 
-  private BackoffBatchWriteExecutor<Object> mockBackoffExecutor;
-  private ErrorRecoverer<Object> mockErrorRecoverer;
-  private RequestInterceptor<Object> mockRequestInterceptor;
-  private AbstractAsyncBatchWriter<Object> testWriter;
-  private AbstractAsyncBatchWriter<Object> testWriterWithoutBackoffAndRecoverer;
-  private AbstractAsyncBatchWriter<Object> testFailureWriter;
+  private BackoffBatchWriteExecutor mockBackoffExecutor;
+  private ErrorRecoverer mockErrorRecoverer;
+  private RequestInterceptor mockRequestInterceptor;
+  private AbstractAsyncBatchWriter testWriter;
+  private AbstractAsyncBatchWriter testWriterWithoutBackoffAndRecoverer;
+  private AbstractAsyncBatchWriter testFailureWriter;
   private static ExecutorService executorService;
 
   @BeforeAll
@@ -49,22 +52,25 @@ class AbstractAsyncBatchWriterTest {
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
+    final WriteRetryPolicyConfiguration retryPolicyConfiguration = WriteRetryPolicyConfiguration.builder()
+      .backoffBatchWriteExecutor(mockBackoffExecutor)
+      .errorRecoverer(mockErrorRecoverer)
+      .build();
+
     testWriter = new TestAsyncWriterSuccess(
-      mockBackoffExecutor,
-      mockErrorRecoverer,
+      retryPolicyConfiguration,
       executorService,
       mockRequestInterceptor
     );
 
     testFailureWriter = new TestAsyncWriterFailure(
-      mockBackoffExecutor,
-      mockErrorRecoverer,
+      retryPolicyConfiguration,
       executorService,
       mockRequestInterceptor);
 
     testWriterWithoutBackoffAndRecoverer = new TestAsyncWriterFailure(
-      null,
-      null,
+      WriteRetryPolicyConfiguration.builder()
+        .build(),
       executorService,
       mockRequestInterceptor);
 
@@ -73,7 +79,7 @@ class AbstractAsyncBatchWriterTest {
   @Test
   void shouldExecuteSuccessfullyWithoutErrors() {
 
-    final Object entity = new Object();
+    final MyItem entity = new MyItem("1", "nome");
 
     testWriter.execute(List.of(entity));
 
@@ -88,9 +94,9 @@ class AbstractAsyncBatchWriterTest {
   @Test
   void shouldRetryOnFailure() throws ExecutionException, InterruptedException {
 
-    final Object entity = new Object();
+    final MyItem entity = new MyItem("1", "nome");
 
-    final ArgumentCaptor<Function<List<Object>, List<UnprocessedItem<Object>>>> runnableCaptor = ArgumentCaptor.forClass(Function.class);
+    final ArgumentCaptor<Function<List<? extends TableEntity>, List<UnprocessedItem>>> runnableCaptor = ArgumentCaptor.forClass(Function.class);
 
     doNothing().when(mockBackoffExecutor).execute(runnableCaptor.capture(), anyList());
 
@@ -107,9 +113,9 @@ class AbstractAsyncBatchWriterTest {
   @Test
   void shouldRecoverOnFailureWhenBackoffExecutorFails() throws ExecutionException, InterruptedException {
 
-    final Object entity = new Object();
+    final MyItem entity = new MyItem("1", "nome");
 
-    final ArgumentCaptor<Function<List<Object>, List<UnprocessedItem<Object>>>> runnableCaptor = ArgumentCaptor.forClass(Function.class);
+    final ArgumentCaptor<Function<List<? extends TableEntity>, List<UnprocessedItem>>> runnableCaptor = ArgumentCaptor.forClass(Function.class);
     doThrow(RuntimeException.class).when(mockBackoffExecutor).execute(runnableCaptor.capture(), anyList());
 
     testFailureWriter.execute(List.of(entity));
@@ -125,28 +131,28 @@ class AbstractAsyncBatchWriterTest {
   @Test
   void shouldLogErrorWhenRecoveryFails() throws ExecutionException, InterruptedException {
 
-    final Object entity = new Object();
+    final MyItem entity = new MyItem("1", "nome");
 
-    final ArgumentCaptor<Function<List<Object>, List<UnprocessedItem<Object>>>> runnableCaptor = ArgumentCaptor.forClass(Function.class);
+    final ArgumentCaptor<Function<List<? extends TableEntity>, List<UnprocessedItem>>> runnableCaptor = ArgumentCaptor.forClass(Function.class);
 
     doThrow(RuntimeException.class).when(mockBackoffExecutor).execute(runnableCaptor.capture(), anyList());
-    doThrow(RuntimeException.class).when(mockErrorRecoverer).recover(any(Object.class));
+    doThrow(RuntimeException.class).when(mockErrorRecoverer).recover(any(MyItem.class));
 
     testFailureWriter.execute(List.of(entity));
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Function.class), anyList());
       verify(mockErrorRecoverer, times(1)).recover(anyList());
-      verify(mockRequestInterceptor, never()).logError(any(Object.class), any());
-      verify(mockRequestInterceptor, never()).logSuccess(any(Object.class));
+      verify(mockRequestInterceptor, never()).logError(any(MyItem.class), any());
+      verify(mockRequestInterceptor, never()).logSuccess(any(MyItem.class));
     });
   }
 
   @Test
   void shouldThrowExceptionWhenNoRecoveryAndNoBackoff() throws ExecutionException, InterruptedException {
-    final Object entity = new Object();
+    final MyItem entity = new MyItem("1", "nome");
 
-    final ArgumentCaptor<Function<List<Object>, List<UnprocessedItem<Object>>>> runnableCaptor = ArgumentCaptor.forClass(Function.class);
+    final ArgumentCaptor<Function<List<? extends TableEntity>, List<UnprocessedItem>>> runnableCaptor = ArgumentCaptor.forClass(Function.class);
 
     doNothing().when(mockBackoffExecutor).execute(runnableCaptor.capture(), anyList());
 
@@ -161,36 +167,37 @@ class AbstractAsyncBatchWriterTest {
   }
 
 
-  private static class TestAsyncWriterSuccess extends AbstractAsyncBatchWriter<Object> {
+  private static class TestAsyncWriterSuccess extends AbstractAsyncBatchWriter {
 
-    public TestAsyncWriterSuccess(final BackoffBatchWriteExecutor<Object> backoffExecutor,
-                                  final ErrorRecoverer<Object> errorRecoverer,
+    public TestAsyncWriterSuccess(final WriteRetryPolicyConfiguration retryPolicyConfiguration,
                                   final ExecutorService executorService,
-                                  final RequestInterceptor<Object> requestInterceptor) {
-      super(backoffExecutor, errorRecoverer, executorService, requestInterceptor);
+                                  final RequestInterceptor requestInterceptor) {
+      super(retryPolicyConfiguration, executorService, requestInterceptor);
     }
 
 
     @Override
-    protected List<UnprocessedItem<Object>> executor(List<Object> entity) {
+    protected List<UnprocessedItem> executor(List<? extends TableEntity> entity) {
       return List.of();
     }
+
   }
 
-  private static class TestAsyncWriterFailure extends AbstractAsyncBatchWriter<Object> {
+  private static class TestAsyncWriterFailure extends AbstractAsyncBatchWriter {
 
-    public TestAsyncWriterFailure(final BackoffBatchWriteExecutor<Object> backoffExecutor,
-                                  final ErrorRecoverer<Object> errorRecoverer,
+    public TestAsyncWriterFailure(final WriteRetryPolicyConfiguration retryPolicyConfiguration,
                                   final ExecutorService executorService,
-                                  final RequestInterceptor<Object> requestInterceptor) {
-      super(backoffExecutor, errorRecoverer, executorService, requestInterceptor);
+                                  final RequestInterceptor requestInterceptor) {
+      super(retryPolicyConfiguration, executorService, requestInterceptor);
     }
 
     @Override
-    protected List<UnprocessedItem<Object>> executor(List<Object> entity) {
-      return UnprocessedItem.unprocessedItems(List.of(new Object(), new Object()));
+    protected List<UnprocessedItem> executor(List<? extends TableEntity> entity) {
+      return UnprocessedItem.unprocessedItems(List.of(new MyItem("1", ""), new MyItem("1", "")));
     }
   }
+
+
 }
 
 

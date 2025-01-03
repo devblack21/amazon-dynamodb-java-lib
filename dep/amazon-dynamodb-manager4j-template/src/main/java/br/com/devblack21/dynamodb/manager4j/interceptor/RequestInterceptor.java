@@ -1,16 +1,18 @@
 package br.com.devblack21.dynamodb.manager4j.interceptor;
 
+import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
+
 import java.util.List;
 
-public interface RequestInterceptor<T> {
+public interface RequestInterceptor {
 
-  void logSuccess(T entity);
+  void logSuccess(TableEntity entity);
 
-  void logSuccess(List<T> entity);
+  void logSuccess(List<? extends TableEntity> entity);
 
-  void logError(T entity, final Throwable throwable);
+  void logError(TableEntity entity, final Throwable throwable);
 
-  void logError(List<T> entity, final Throwable throwable);
+  void logError(List<? extends TableEntity> entity, final Throwable throwable);
 
 
 }

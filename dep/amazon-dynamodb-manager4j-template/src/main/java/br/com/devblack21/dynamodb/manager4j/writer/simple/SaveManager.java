@@ -1,7 +1,9 @@
 package br.com.devblack21.dynamodb.manager4j.writer.simple;
 
-public interface SaveManager<T> {
+import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 
-  void save(T entity);
+public interface SaveManager {
+
+  void save(TableEntity entity);
 
 }
