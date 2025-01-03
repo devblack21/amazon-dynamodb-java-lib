@@ -30,7 +30,7 @@ abstract class AbstractSyncBatchWriter<T> {
     }
   }
 
-  public abstract List<T> executor(final List<T> entity);
+  protected abstract List<T> executor(final List<T> entity);
 
   private void handleSaveFailure(final List<T> entity, final Exception initialException) {
     if (this.backoffExecutor != null) {
