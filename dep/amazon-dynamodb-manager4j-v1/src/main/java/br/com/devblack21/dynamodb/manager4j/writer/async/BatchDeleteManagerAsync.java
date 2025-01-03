@@ -1,6 +1,7 @@
 package br.com.devblack21.dynamodb.manager4j.writer.async;
 
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
+import br.com.devblack21.dynamodb.manager4j.model.UnprocessedItem;
 import br.com.devblack21.dynamodb.manager4j.resilience.backoff.batch.BackoffBatchWriteExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
 import br.com.devblack21.dynamodb.manager4j.writer.BatchDeleteManager;
@@ -30,11 +31,11 @@ public class BatchDeleteManagerAsync<T> extends AbstractAsyncBatchWriter<T> impl
   }
 
   @Override
-  public List<T> executor(final List<T> entity) {
+  public List<UnprocessedItem<T>> executor(final List<T> entity) {
     try {
-      return getUnprocessedItens(dynamoDBMapper.batchDelete(entity));
+      return UnprocessedItem.unprocessedItems(getUnprocessedItens(dynamoDBMapper.batchDelete(entity)));
     } catch (final Exception e) {
-      return entity;
+      return UnprocessedItem.unprocessedItems(entity);
     }
   }
 

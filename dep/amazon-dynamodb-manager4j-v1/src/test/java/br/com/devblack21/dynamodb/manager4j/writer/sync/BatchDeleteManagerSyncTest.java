@@ -2,6 +2,7 @@ package br.com.devblack21.dynamodb.manager4j.writer.sync;
 
 import br.com.devblack21.dynamodb.manager4j.factory.BatchDeleteClientFactory;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
+import br.com.devblack21.dynamodb.manager4j.model.UnprocessedItem;
 import br.com.devblack21.dynamodb.manager4j.resilience.backoff.batch.BackoffBatchWriteExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
 import br.com.devblack21.dynamodb.manager4j.writer.BatchDeleteManager;
@@ -141,7 +142,7 @@ class BatchDeleteManagerSyncTest {
   }
 
   private void simulateBackoffFailure() throws ExecutionException, InterruptedException {
-    final ArgumentCaptor<Function<List<Object>, List<Object>>> captor = ArgumentCaptor.forClass(Function.class);
+   final ArgumentCaptor<Function<List<Object>, List<UnprocessedItem<Object>>>> captor = ArgumentCaptor.forClass(Function.class);
     doThrow(RuntimeException.class).when(mockBackoffExecutor).execute(captor.capture(), anyList());
   }
 
@@ -150,7 +151,7 @@ class BatchDeleteManagerSyncTest {
   }
 
   private void captureRunnableForRetry() throws ExecutionException, InterruptedException {
-    final ArgumentCaptor<Function<List<Object>, List<Object>>> captor = ArgumentCaptor.forClass(Function.class);
+   final ArgumentCaptor<Function<List<Object>, List<UnprocessedItem<Object>>>> captor = ArgumentCaptor.forClass(Function.class);
     doNothing().when(mockBackoffExecutor).execute(captor.capture(), anyList());
   }
 

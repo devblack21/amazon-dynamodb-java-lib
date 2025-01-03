@@ -2,6 +2,7 @@ package br.com.devblack21.dynamodb.manager4j.writer.async;
 
 
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
+import br.com.devblack21.dynamodb.manager4j.model.UnprocessedItem;
 import br.com.devblack21.dynamodb.manager4j.resilience.backoff.batch.BackoffBatchWriteExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
 import org.awaitility.Awaitility;
@@ -89,7 +90,7 @@ class AbstractAsyncBatchWriterTest {
 
     final Object entity = new Object();
 
-    final ArgumentCaptor<Function<List<Object>, List<Object>>> runnableCaptor = ArgumentCaptor.forClass(Function.class);
+    final ArgumentCaptor<Function<List<Object>, List<UnprocessedItem<Object>>>> runnableCaptor = ArgumentCaptor.forClass(Function.class);
 
     doNothing().when(mockBackoffExecutor).execute(runnableCaptor.capture(), anyList());
 
@@ -108,7 +109,7 @@ class AbstractAsyncBatchWriterTest {
 
     final Object entity = new Object();
 
-    final ArgumentCaptor<Function<List<Object>, List<Object>>> runnableCaptor = ArgumentCaptor.forClass(Function.class);
+    final ArgumentCaptor<Function<List<Object>, List<UnprocessedItem<Object>>>> runnableCaptor = ArgumentCaptor.forClass(Function.class);
     doThrow(RuntimeException.class).when(mockBackoffExecutor).execute(runnableCaptor.capture(), anyList());
 
     testFailureWriter.execute(List.of(entity));
@@ -126,7 +127,7 @@ class AbstractAsyncBatchWriterTest {
 
     final Object entity = new Object();
 
-    final ArgumentCaptor<Function<List<Object>, List<Object>>> runnableCaptor = ArgumentCaptor.forClass(Function.class);
+    final ArgumentCaptor<Function<List<Object>, List<UnprocessedItem<Object>>>> runnableCaptor = ArgumentCaptor.forClass(Function.class);
 
     doThrow(RuntimeException.class).when(mockBackoffExecutor).execute(runnableCaptor.capture(), anyList());
     doThrow(RuntimeException.class).when(mockErrorRecoverer).recover(any(Object.class));
@@ -145,7 +146,7 @@ class AbstractAsyncBatchWriterTest {
   void shouldThrowExceptionWhenNoRecoveryAndNoBackoff() throws ExecutionException, InterruptedException {
     final Object entity = new Object();
 
-    final ArgumentCaptor<Function<List<Object>, List<Object>>> runnableCaptor = ArgumentCaptor.forClass(Function.class);
+    final ArgumentCaptor<Function<List<Object>, List<UnprocessedItem<Object>>>> runnableCaptor = ArgumentCaptor.forClass(Function.class);
 
     doNothing().when(mockBackoffExecutor).execute(runnableCaptor.capture(), anyList());
 
@@ -171,7 +172,7 @@ class AbstractAsyncBatchWriterTest {
 
 
     @Override
-    protected List<Object> executor(List<Object> entity) {
+    protected List<UnprocessedItem<Object>> executor(List<Object> entity) {
       return List.of();
     }
   }
@@ -186,8 +187,8 @@ class AbstractAsyncBatchWriterTest {
     }
 
     @Override
-    protected List<Object> executor(List<Object> entity) {
-      return List.of(new Object(), new Object());
+    protected List<UnprocessedItem<Object>> executor(List<Object> entity) {
+      return UnprocessedItem.unprocessedItems(List.of(new Object(), new Object()));
     }
   }
 }

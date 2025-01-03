@@ -1,6 +1,7 @@
 package br.com.devblack21.dynamodb.manager4j.writer.async;
 
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
+import br.com.devblack21.dynamodb.manager4j.model.UnprocessedItem;
 import br.com.devblack21.dynamodb.manager4j.resilience.backoff.batch.BackoffBatchWriteExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.backoff.single.BackoffSingleWriteExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
@@ -18,49 +19,49 @@ abstract class AbstractAsyncBatchWriter<T> {
   private final ExecutorService executorService;
   private final RequestInterceptor<T> requestInterceptor;
 
-  public void execute(final List<T> entity) {
-    CompletableFuture.supplyAsync(() -> executor(entity), executorService)
+  public void execute(final List<T> entities) {
+    CompletableFuture.supplyAsync(() -> executor(entities), executorService)
       .whenComplete((unprocesseds, throwable) -> {
         if (!unprocesseds.isEmpty()) {
-          this.handleSaveFailure(entity, throwable);
+          this.handleSaveFailure(UnprocessedItem.getEntities(unprocesseds), throwable);
         } else {
-          this.logSuccess(entity);
+          this.logSuccess(entities);
         }
       });
   }
 
-  protected abstract List<T> executor(final List<T> entity);
+  protected abstract List<UnprocessedItem<T>> executor(final List<T> entities);
 
-  private void handleSaveFailure(final List<T> entity, final Throwable initialException) {
+  private void handleSaveFailure(final List<T> entities, final Throwable initialException) {
     if (this.backoffExecutor != null) {
       try {
-        this.backoffExecutor.execute(this::executor, entity);
-        this.logSuccess(entity);
+        this.backoffExecutor.execute(this::executor, entities);
+        this.logSuccess(entities);
       } catch (final Exception retryException) {
-        this.handleRecoveryOrThrow(entity, retryException);
+        this.handleRecoveryOrThrow(entities, retryException);
       }
     } else {
-      this.handleRecoveryOrThrow(entity, initialException);
+      this.handleRecoveryOrThrow(entities, initialException);
     }
   }
 
-  private void handleRecoveryOrThrow(final List<T> entity, final Throwable exceptionToHandle) {
+  private void handleRecoveryOrThrow(final List<T> entities, final Throwable exceptionToHandle) {
     if (this.errorRecoverer != null) {
-      this.errorRecoverer.recover(entity);
+      this.errorRecoverer.recover(entities);
     }
 
-    this.logError(entity, exceptionToHandle);
+    this.logError(entities, exceptionToHandle);
   }
 
-  private void logError(final List<T> entity, final Throwable throwable) {
+  private void logError(final List<T> entities, final Throwable throwable) {
     if (this.requestInterceptor != null) {
-      this.requestInterceptor.logError(entity, throwable);
+      this.requestInterceptor.logError(entities, throwable);
     }
   }
 
-  private void logSuccess(final List<T> entity) {
+  private void logSuccess(final List<T> entities) {
     if (this.requestInterceptor != null) {
-      this.requestInterceptor.logSuccess(entity);
+      this.requestInterceptor.logSuccess(entities);
     }
   }
 }
