@@ -5,9 +5,11 @@ import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.UnprocessedItem;
 import br.com.devblack21.dynamodb.manager4j.resilience.backoff.batch.BackoffBatchWriteExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
+import br.com.devblack21.dynamodb.manager4j.transform.FailedBatchPutRequestTransformer;
 import br.com.devblack21.dynamodb.manager4j.writer.BatchSaveManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.DeleteRequest;
 import com.amazonaws.services.dynamodbv2.model.PutRequest;
 import com.amazonaws.services.dynamodbv2.model.WriteRequest;
 import org.awaitility.Awaitility;
@@ -31,6 +33,7 @@ class BatchSaveManagerAsyncTest {
   private final Integer TIMEOUT = 3;
 
   private DynamoDBMapper dynamoDBMapper;
+  private FailedBatchPutRequestTransformer<Object> transformer;
   private BackoffBatchWriteExecutor<Object> mockBackoffExecutor;
   private ErrorRecoverer<Object> mockErrorRecoverer;
   private RequestInterceptor<Object> mockRequestInterceptor;
@@ -51,12 +54,14 @@ class BatchSaveManagerAsyncTest {
   @BeforeEach
   void setUp() {
     dynamoDBMapper = mock(DynamoDBMapper.class);
+    transformer = mock(FailedBatchPutRequestTransformer.class);
     mockBackoffExecutor = mock(BackoffBatchWriteExecutor.class);
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
     testWriter = BatchSaveClientFactory.createAsyncClient(
       dynamoDBMapper,
+      transformer,
       mockBackoffExecutor,
       mockErrorRecoverer,
       executorService,
@@ -65,6 +70,7 @@ class BatchSaveManagerAsyncTest {
 
     testWriterWithoutBackoffAndRecoverer = BatchSaveClientFactory.createAsyncClient(
       dynamoDBMapper,
+      transformer,
       null,
       null,
       executorService,
@@ -77,6 +83,8 @@ class BatchSaveManagerAsyncTest {
     final Object entity = new Object();
 
     when(dynamoDBMapper.batchSave(anyList())).thenReturn(List.of());
+
+    when(transformer.transform(anyList())).thenReturn(List.of());
 
     testWriter.batchSave(List.of(entity));
 
@@ -185,11 +193,12 @@ class BatchSaveManagerAsyncTest {
     when(failedBatch.getUnprocessedItems()).thenReturn(unprocessedItems);
     failedBatches.add(failedBatch);
 
+    when(transformer.transform(anyList())).thenReturn(List.of("item"));
+
     when(dynamoDBMapper.batchSave(anyList()))
       .thenReturn(failedBatches)
       .thenReturn(List.of());
   }
-
   private void simulateBackoffFailure() throws ExecutionException, InterruptedException {
    final ArgumentCaptor<Function<List<Object>, List<UnprocessedItem<Object>>>> captor = ArgumentCaptor.forClass(Function.class);
     doThrow(RuntimeException.class).when(mockBackoffExecutor).execute(captor.capture(), anyList());

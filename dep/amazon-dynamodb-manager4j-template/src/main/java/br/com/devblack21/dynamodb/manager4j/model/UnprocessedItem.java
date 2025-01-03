@@ -17,7 +17,7 @@ public class UnprocessedItem<T> {
     this.entity = entity;
   }
 
-  private static <T> UnprocessedItem<T> create(final T entity) {
+  public static <T> UnprocessedItem<T> create(final T entity) {
     return new UnprocessedItem<>(entity);
   }
 

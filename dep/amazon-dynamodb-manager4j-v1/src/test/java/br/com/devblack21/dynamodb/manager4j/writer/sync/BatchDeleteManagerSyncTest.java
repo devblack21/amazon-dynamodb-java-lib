@@ -5,9 +5,11 @@ import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.UnprocessedItem;
 import br.com.devblack21.dynamodb.manager4j.resilience.backoff.batch.BackoffBatchWriteExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
+import br.com.devblack21.dynamodb.manager4j.transform.FailedBatchDeleteRequestTransformer;
 import br.com.devblack21.dynamodb.manager4j.writer.BatchDeleteManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.DeleteRequest;
 import com.amazonaws.services.dynamodbv2.model.PutRequest;
 import com.amazonaws.services.dynamodbv2.model.WriteRequest;
 import org.junit.jupiter.api.Assertions;
@@ -24,6 +26,7 @@ import static org.mockito.Mockito.*;
 class BatchDeleteManagerSyncTest {
 
   private DynamoDBMapper dynamoDBMapper;
+  private FailedBatchDeleteRequestTransformer<Object> transformer;
   private BackoffBatchWriteExecutor<Object> mockBackoffExecutor;
   private ErrorRecoverer<Object> mockErrorRecoverer;
   private RequestInterceptor<Object> mockRequestInterceptor;
@@ -33,12 +36,14 @@ class BatchDeleteManagerSyncTest {
   @BeforeEach
   void setUp() {
     dynamoDBMapper = mock(DynamoDBMapper.class);
+    transformer = mock(FailedBatchDeleteRequestTransformer.class);
     mockBackoffExecutor = mock(BackoffBatchWriteExecutor.class);
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
     testWriter = BatchDeleteClientFactory.createSyncClient(
       dynamoDBMapper,
+      transformer,
       mockBackoffExecutor,
       mockErrorRecoverer,
       mockRequestInterceptor
@@ -46,6 +51,7 @@ class BatchDeleteManagerSyncTest {
 
     testWriterWithoutBackoffAndRecoverer = BatchDeleteClientFactory.createSyncClient(
       dynamoDBMapper,
+      transformer,
       null,
       null,
       mockRequestInterceptor
@@ -161,11 +167,13 @@ class BatchDeleteManagerSyncTest {
     final DynamoDBMapper.FailedBatch failedBatch = mock(DynamoDBMapper.FailedBatch.class);
     final Map<String, List<WriteRequest>> unprocessedItems = new HashMap<>();
     final WriteRequest writeRequest = new WriteRequest();
-    writeRequest.setPutRequest(new PutRequest().withItem(Map.of("a", new AttributeValue("b"))));
+    writeRequest.setDeleteRequest(new DeleteRequest().withKey(Map.of("a", new AttributeValue("b"))));
     unprocessedItems.put("TableName", List.of(writeRequest));
 
     when(failedBatch.getUnprocessedItems()).thenReturn(unprocessedItems);
     failedBatches.add(failedBatch);
+
+    when(transformer.transform(anyList())).thenReturn(List.of("item"));
 
     when(dynamoDBMapper.batchDelete(anyList()))
       .thenReturn(failedBatches)

@@ -5,9 +5,11 @@ import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.UnprocessedItem;
 import br.com.devblack21.dynamodb.manager4j.resilience.backoff.batch.BackoffBatchWriteExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
+import br.com.devblack21.dynamodb.manager4j.transform.FailedBatchPutRequestTransformer;
 import br.com.devblack21.dynamodb.manager4j.writer.BatchSaveManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.DeleteRequest;
 import com.amazonaws.services.dynamodbv2.model.PutRequest;
 import com.amazonaws.services.dynamodbv2.model.WriteRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +26,7 @@ import static org.mockito.Mockito.*;
 class BatchSaveManagerSyncTest {
 
   private DynamoDBMapper dynamoDBMapper;
+  private FailedBatchPutRequestTransformer<Object> transformer;
   private BackoffBatchWriteExecutor<Object> mockBackoffExecutor;
   private ErrorRecoverer<Object> mockErrorRecoverer;
   private RequestInterceptor<Object> mockRequestInterceptor;
@@ -33,12 +36,14 @@ class BatchSaveManagerSyncTest {
   @BeforeEach
   void setUp() {
     dynamoDBMapper = mock(DynamoDBMapper.class);
+    transformer = mock(FailedBatchPutRequestTransformer.class);
     mockBackoffExecutor = mock(BackoffBatchWriteExecutor.class);
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
     testWriter = BatchSaveClientFactory.createSyncClient(
       dynamoDBMapper,
+      transformer,
       mockBackoffExecutor,
       mockErrorRecoverer,
       mockRequestInterceptor
@@ -46,6 +51,7 @@ class BatchSaveManagerSyncTest {
 
     testWriterWithoutBackoffAndRecoverer = BatchSaveClientFactory.createSyncClient(
       dynamoDBMapper,
+      transformer,
       null,
       null,
       mockRequestInterceptor
@@ -163,6 +169,8 @@ class BatchSaveManagerSyncTest {
 
     when(failedBatch.getUnprocessedItems()).thenReturn(unprocessedItems);
     failedBatches.add(failedBatch);
+
+    when(transformer.transform(anyList())).thenReturn(List.of("item"));
 
     when(dynamoDBMapper.batchSave(anyList()))
       .thenReturn(failedBatches)
