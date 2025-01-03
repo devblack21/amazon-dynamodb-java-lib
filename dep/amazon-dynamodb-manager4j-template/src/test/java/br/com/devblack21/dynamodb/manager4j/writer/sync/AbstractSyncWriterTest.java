@@ -2,8 +2,8 @@ package br.com.devblack21.dynamodb.manager4j.writer.sync;
 
 
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
-import br.com.devblack21.dynamodb.manager4j.resilience.BackoffExecutor;
-import br.com.devblack21.dynamodb.manager4j.resilience.ErrorRecoverer;
+import br.com.devblack21.dynamodb.manager4j.resilience.backoff.single.BackoffSingleWriteExecutor;
+import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ import static org.mockito.Mockito.*;
 
 class AbstractSyncWriterTest {
 
-  private BackoffExecutor mockBackoffExecutor;
+  private BackoffSingleWriteExecutor mockBackoffExecutor;
   private ErrorRecoverer<Object> mockErrorRecoverer;
   private RequestInterceptor<Object> mockRequestInterceptor;
   private AbstractSyncWriter<Object> testWriter;
@@ -24,7 +24,7 @@ class AbstractSyncWriterTest {
 
   @BeforeEach
   void setUp() {
-    mockBackoffExecutor = mock(BackoffExecutor.class);
+    mockBackoffExecutor = mock(BackoffSingleWriteExecutor.class);
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
@@ -54,8 +54,8 @@ class AbstractSyncWriterTest {
     testWriter.execute(entity);
 
     verify(mockBackoffExecutor, never()).execute(any(Runnable.class));
-    verify(mockErrorRecoverer, never()).recover(any());
-    verify(mockRequestInterceptor, times(1)).logSuccess(any());
+    verify(mockErrorRecoverer, never()).recover(any(Object.class));
+    verify(mockRequestInterceptor, times(1)).logSuccess(any(Object.class));
     verify(mockRequestInterceptor, never()).logError(any(), any());
   }
 
@@ -71,9 +71,9 @@ class AbstractSyncWriterTest {
     testFailureWriter.execute(entity);
 
     verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
-    verify(mockErrorRecoverer, never()).recover(any());
-    verify(mockRequestInterceptor, never()).logError(eq(entity), any());
-    verify(mockRequestInterceptor, times(1)).logSuccess(any());
+    verify(mockErrorRecoverer, never()).recover(any(Object.class));
+    verify(mockRequestInterceptor, never()).logError(any(Object.class), any());
+    verify(mockRequestInterceptor, times(1)).logSuccess(any(Object.class));
   }
 
   @Test
@@ -88,9 +88,9 @@ class AbstractSyncWriterTest {
     testFailureWriter.execute(entity);
 
     verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
-    verify(mockErrorRecoverer, times(1)).recover(any());
+    verify(mockErrorRecoverer, times(1)).recover(any(Object.class));
     verify(mockRequestInterceptor, times(1)).logError(any(Object.class), any(RuntimeException.class));
-    verify(mockRequestInterceptor, never()).logSuccess(any());
+    verify(mockRequestInterceptor, never()).logSuccess(any(Object.class));
   }
 
   @Test
@@ -101,14 +101,14 @@ class AbstractSyncWriterTest {
     final ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
 
     doThrow(RuntimeException.class).when(mockBackoffExecutor).execute(runnableCaptor.capture());
-    doThrow(RuntimeException.class).when(mockErrorRecoverer).recover(any());
+    doThrow(RuntimeException.class).when(mockErrorRecoverer).recover(any(Object.class));
 
     Assertions.assertThrows(RuntimeException.class, () -> testFailureWriter.execute(entity));
 
     verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
-    verify(mockErrorRecoverer, times(1)).recover(any());
-    verify(mockRequestInterceptor, never()).logError(eq(entity), any());
-    verify(mockRequestInterceptor, never()).logSuccess(any());
+    verify(mockErrorRecoverer, times(1)).recover(any(Object.class));
+    verify(mockRequestInterceptor, never()).logError(any(Object.class), any());
+    verify(mockRequestInterceptor, never()).logSuccess(any(Object.class));
   }
 
   @Test
@@ -122,15 +122,15 @@ class AbstractSyncWriterTest {
     Assertions.assertThrows(RuntimeException.class, () -> testWriterWithoutBackoffAndRecoverer.execute(entity));
 
     verify(mockBackoffExecutor, never()).execute(any(Runnable.class));
-    verify(mockErrorRecoverer, never()).recover(any());
-    verify(mockRequestInterceptor, times(1)).logError(eq(entity), any());
-    verify(mockRequestInterceptor, never()).logSuccess(any());
+    verify(mockErrorRecoverer, never()).recover(any(Object.class));
+    verify(mockRequestInterceptor, times(1)).logError(any(Object.class), any());
+    verify(mockRequestInterceptor, never()).logSuccess(any(Object.class));
   }
 
 
   private static class TestSyncWriterSuccess extends AbstractSyncWriter<Object> {
 
-    public TestSyncWriterSuccess(final BackoffExecutor backoffExecutor,
+    public TestSyncWriterSuccess(final BackoffSingleWriteExecutor backoffExecutor,
                                  final ErrorRecoverer<Object> errorRecoverer,
                                  final RequestInterceptor<Object> requestInterceptor) {
       super(backoffExecutor, errorRecoverer, requestInterceptor);
@@ -143,7 +143,7 @@ class AbstractSyncWriterTest {
 
   private static class TestSyncWriterFailure extends AbstractSyncWriter<Object> {
 
-    public TestSyncWriterFailure(final BackoffExecutor backoffExecutor,
+    public TestSyncWriterFailure(final BackoffSingleWriteExecutor backoffExecutor,
                                  final ErrorRecoverer<Object> errorRecoverer,
                                  final RequestInterceptor<Object> requestInterceptor) {
       super(backoffExecutor, errorRecoverer, requestInterceptor);

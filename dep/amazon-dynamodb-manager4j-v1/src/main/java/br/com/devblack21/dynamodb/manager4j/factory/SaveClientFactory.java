@@ -1,8 +1,8 @@
 package br.com.devblack21.dynamodb.manager4j.factory;
 
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
-import br.com.devblack21.dynamodb.manager4j.resilience.BackoffExecutor;
-import br.com.devblack21.dynamodb.manager4j.resilience.ErrorRecoverer;
+import br.com.devblack21.dynamodb.manager4j.resilience.backoff.single.BackoffSingleWriteExecutor;
+import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
 import br.com.devblack21.dynamodb.manager4j.writer.SaveManager;
 import br.com.devblack21.dynamodb.manager4j.writer.async.SaveManagerAsync;
 import br.com.devblack21.dynamodb.manager4j.writer.sync.SaveManagerSync;
@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutorService;
 public class SaveClientFactory {
 
   public static <T> SaveManager<T> createSyncClient(final DynamoDBMapper dynamoDBMapper,
-                                                    final BackoffExecutor backoffExecutor,
+                                                    final BackoffSingleWriteExecutor backoffExecutor,
                                                     final ErrorRecoverer<T> errorRecoverer,
                                                     final RequestInterceptor<T> requestInterceptor) {
     return new SaveManagerSync<>(dynamoDBMapper, backoffExecutor, errorRecoverer, requestInterceptor);
@@ -21,7 +21,7 @@ public class SaveClientFactory {
 
 
   public static <T> SaveManager<T> createSyncClient(final DynamoDBMapper dynamoDBMapper,
-                                                    final BackoffExecutor backoffExecutor,
+                                                    final BackoffSingleWriteExecutor backoffExecutor,
                                                     final RequestInterceptor<T> requestInterceptor) {
     return createSyncClient(dynamoDBMapper, backoffExecutor, null, requestInterceptor);
   }
@@ -38,7 +38,7 @@ public class SaveClientFactory {
 
 
   public static <T> SaveManager<T> createAsyncClient(final DynamoDBMapper dynamoDBMapper,
-                                                     final BackoffExecutor backoffExecutor,
+                                                     final BackoffSingleWriteExecutor backoffExecutor,
                                                      final ErrorRecoverer<T> errorRecoverer,
                                                      final ExecutorService executorService,
                                                      final RequestInterceptor<T> requestInterceptor) {
@@ -47,7 +47,7 @@ public class SaveClientFactory {
 
 
   public static <T> SaveManager<T> createAsyncClient(final DynamoDBMapper dynamoDBMapper,
-                                                     final BackoffExecutor backoffExecutor,
+                                                     final BackoffSingleWriteExecutor backoffExecutor,
                                                      final ExecutorService executorService,
                                                      final RequestInterceptor<T> requestInterceptor) {
     return createAsyncClient(dynamoDBMapper, backoffExecutor, null, executorService, requestInterceptor);

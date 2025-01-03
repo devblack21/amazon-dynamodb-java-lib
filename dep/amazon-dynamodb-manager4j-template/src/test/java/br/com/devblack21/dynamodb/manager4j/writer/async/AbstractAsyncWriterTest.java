@@ -2,8 +2,8 @@ package br.com.devblack21.dynamodb.manager4j.writer.async;
 
 
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
-import br.com.devblack21.dynamodb.manager4j.resilience.BackoffExecutor;
-import br.com.devblack21.dynamodb.manager4j.resilience.ErrorRecoverer;
+import br.com.devblack21.dynamodb.manager4j.resilience.backoff.single.BackoffSingleWriteExecutor;
+import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -22,7 +22,7 @@ class AbstractAsyncWriterTest {
 
   private final Integer TIMEOUT = 3;
 
-  private BackoffExecutor mockBackoffExecutor;
+  private BackoffSingleWriteExecutor mockBackoffExecutor;
   private ErrorRecoverer<Object> mockErrorRecoverer;
   private RequestInterceptor<Object> mockRequestInterceptor;
   private AbstractAsyncWriter<Object> testWriter;
@@ -42,7 +42,7 @@ class AbstractAsyncWriterTest {
 
   @BeforeEach
   void setUp() {
-    mockBackoffExecutor = mock(BackoffExecutor.class);
+    mockBackoffExecutor = mock(BackoffSingleWriteExecutor.class);
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
@@ -76,9 +76,9 @@ class AbstractAsyncWriterTest {
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, never()).execute(any(Runnable.class));
-      verify(mockErrorRecoverer, never()).recover(any());
-      verify(mockRequestInterceptor, times(1)).logSuccess(any());
-      verify(mockRequestInterceptor, never()).logError(any(), any());
+      verify(mockErrorRecoverer, never()).recover(any(Object.class));
+      verify(mockRequestInterceptor, times(1)).logSuccess(any(Object.class));
+      verify(mockRequestInterceptor, never()).logError(any(Object.class), any());
     });
   }
 
@@ -95,9 +95,9 @@ class AbstractAsyncWriterTest {
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
-      verify(mockErrorRecoverer, never()).recover(any());
-      verify(mockRequestInterceptor, never()).logError(eq(entity), any());
-      verify(mockRequestInterceptor, times(1)).logSuccess(any());
+      verify(mockErrorRecoverer, never()).recover(any(Object.class));
+      verify(mockRequestInterceptor, never()).logError(any(Object.class), any());
+      verify(mockRequestInterceptor, times(1)).logSuccess(any(Object.class));
     });
   }
 
@@ -114,9 +114,9 @@ class AbstractAsyncWriterTest {
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
-      verify(mockErrorRecoverer, times(1)).recover(any());
-      verify(mockRequestInterceptor, never()).logError(eq(entity), any());
-      verify(mockRequestInterceptor, never()).logSuccess(any());
+      verify(mockErrorRecoverer, times(1)).recover(any(Object.class));
+      verify(mockRequestInterceptor, times(1)).logError(any(Object.class), any());
+      verify(mockRequestInterceptor, never()).logSuccess(any(Object.class));
     });
   }
 
@@ -128,15 +128,15 @@ class AbstractAsyncWriterTest {
     final ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
 
     doThrow(RuntimeException.class).when(mockBackoffExecutor).execute(runnableCaptor.capture());
-    doThrow(RuntimeException.class).when(mockErrorRecoverer).recover(any());
+    doThrow(RuntimeException.class).when(mockErrorRecoverer).recover(any(Object.class));
 
     testFailureWriter.execute(entity);
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
-      verify(mockErrorRecoverer, times(1)).recover(any());
-      verify(mockRequestInterceptor, never()).logError(eq(entity), any());
-      verify(mockRequestInterceptor, never()).logSuccess(any());
+      verify(mockErrorRecoverer, times(1)).recover(any(Object.class));
+      verify(mockRequestInterceptor, never()).logError(any(Object.class), any());
+      verify(mockRequestInterceptor, never()).logSuccess(any(Object.class));
     });
   }
 
@@ -161,7 +161,7 @@ class AbstractAsyncWriterTest {
 
   private static class TestAsyncWriterSuccess extends AbstractAsyncWriter<Object> {
 
-    public TestAsyncWriterSuccess(final BackoffExecutor backoffExecutor,
+    public TestAsyncWriterSuccess(final BackoffSingleWriteExecutor backoffExecutor,
                                   final ErrorRecoverer<Object> errorRecoverer,
                                   final ExecutorService executorService,
                                   final RequestInterceptor<Object> requestInterceptor) {
@@ -175,7 +175,7 @@ class AbstractAsyncWriterTest {
 
   private static class TestAsyncWriterFailure extends AbstractAsyncWriter<Object> {
 
-    public TestAsyncWriterFailure(final BackoffExecutor backoffExecutor,
+    public TestAsyncWriterFailure(final BackoffSingleWriteExecutor backoffExecutor,
                                   final ErrorRecoverer<Object> errorRecoverer,
                                   final ExecutorService executorService,
                                   final RequestInterceptor<Object> requestInterceptor) {

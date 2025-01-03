@@ -2,8 +2,8 @@ package br.com.devblack21.dynamodb.manager4j.writer.sync;
 
 import br.com.devblack21.dynamodb.manager4j.factory.SaveClientFactory;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
-import br.com.devblack21.dynamodb.manager4j.resilience.BackoffExecutor;
-import br.com.devblack21.dynamodb.manager4j.resilience.ErrorRecoverer;
+import br.com.devblack21.dynamodb.manager4j.resilience.backoff.single.BackoffSingleWriteExecutor;
+import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
 import br.com.devblack21.dynamodb.manager4j.writer.SaveManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import org.junit.jupiter.api.Assertions;
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.*;
 class SaveManagerSyncTest {
 
   private DynamoDBMapper dynamoDBMapper;
-  private BackoffExecutor mockBackoffExecutor;
+  private BackoffSingleWriteExecutor mockBackoffExecutor;
   private ErrorRecoverer<Object> mockErrorRecoverer;
   private RequestInterceptor<Object> mockRequestInterceptor;
   private SaveManager<Object> testWriter;
@@ -27,7 +27,7 @@ class SaveManagerSyncTest {
   @BeforeEach
   void setUp() {
     dynamoDBMapper = mock(DynamoDBMapper.class);
-    mockBackoffExecutor = mock(BackoffExecutor.class);
+    mockBackoffExecutor = mock(BackoffSingleWriteExecutor.class);
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
@@ -70,8 +70,6 @@ class SaveManagerSyncTest {
     verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
     verifyNoInteractions(mockErrorRecoverer);
     verify(mockRequestInterceptor, never()).logError(eq(entity), any());
-
-
   }
 
   @Test
@@ -87,7 +85,6 @@ class SaveManagerSyncTest {
     verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
     verify(mockErrorRecoverer, times(1)).recover(entity);
     verify(mockRequestInterceptor, times(1)).logError(any(Object.class), any(RuntimeException.class));
-
   }
 
   @Test
@@ -105,7 +102,6 @@ class SaveManagerSyncTest {
     verify(mockErrorRecoverer, times(1)).recover(entity);
     verify(mockRequestInterceptor, never()).logError(eq(entity), any());
     verify(mockRequestInterceptor, never()).logSuccess(any());
-
   }
 
   @Test
@@ -118,7 +114,6 @@ class SaveManagerSyncTest {
 
     verifyNoInteractions(mockBackoffExecutor, mockErrorRecoverer);
     verify(mockRequestInterceptor, times(1)).logError(eq(entity), any());
-
   }
 
   private void simulateDynamoDbFailure() {
@@ -131,7 +126,7 @@ class SaveManagerSyncTest {
   }
 
   private void simulateRecoveryFailure() {
-    doThrow(RuntimeException.class).when(mockErrorRecoverer).recover(any());
+    doThrow(RuntimeException.class).when(mockErrorRecoverer).recover(any(Object.class));
   }
 
   private void captureRunnableForRetry() throws ExecutionException, InterruptedException {

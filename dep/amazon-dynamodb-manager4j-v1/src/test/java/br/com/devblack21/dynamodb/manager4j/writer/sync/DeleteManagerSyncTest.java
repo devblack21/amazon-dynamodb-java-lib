@@ -2,8 +2,8 @@ package br.com.devblack21.dynamodb.manager4j.writer.sync;
 
 import br.com.devblack21.dynamodb.manager4j.factory.DeleteClientFactory;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
-import br.com.devblack21.dynamodb.manager4j.resilience.BackoffExecutor;
-import br.com.devblack21.dynamodb.manager4j.resilience.ErrorRecoverer;
+import br.com.devblack21.dynamodb.manager4j.resilience.backoff.single.BackoffSingleWriteExecutor;
+import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
 import br.com.devblack21.dynamodb.manager4j.writer.DeleteManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import org.junit.jupiter.api.Assertions;
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.*;
 class DeleteManagerSyncTest {
 
   private DynamoDBMapper dynamoDBMapper;
-  private BackoffExecutor mockBackoffExecutor;
+  private BackoffSingleWriteExecutor mockBackoffExecutor;
   private ErrorRecoverer<Object> mockErrorRecoverer;
   private RequestInterceptor<Object> mockRequestInterceptor;
   private DeleteManager<Object> testWriter;
@@ -27,7 +27,7 @@ class DeleteManagerSyncTest {
   @BeforeEach
   void setUp() {
     dynamoDBMapper = mock(DynamoDBMapper.class);
-    mockBackoffExecutor = mock(BackoffExecutor.class);
+    mockBackoffExecutor = mock(BackoffSingleWriteExecutor.class);
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
@@ -100,7 +100,6 @@ class DeleteManagerSyncTest {
 
     Assertions.assertThrows(RuntimeException.class, () -> testWriter.delete(entity));
 
-
     verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
     verify(mockErrorRecoverer, times(1)).recover(entity);
     verify(mockRequestInterceptor, never()).logError(eq(entity), any());
@@ -131,7 +130,7 @@ class DeleteManagerSyncTest {
   }
 
   private void simulateRecoveryFailure() {
-    doThrow(RuntimeException.class).when(mockErrorRecoverer).recover(any());
+    doThrow(RuntimeException.class).when(mockErrorRecoverer).recover(any(Object.class));
   }
 
   private void captureRunnableForRetry() throws ExecutionException, InterruptedException {

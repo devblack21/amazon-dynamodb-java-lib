@@ -1,8 +1,9 @@
 package br.com.devblack21.dynamodb.manager4j.factory;
 
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
-import br.com.devblack21.dynamodb.manager4j.resilience.BackoffExecutor;
-import br.com.devblack21.dynamodb.manager4j.resilience.ErrorRecoverer;
+import br.com.devblack21.dynamodb.manager4j.resilience.backoff.batch.BackoffBatchWriteExecutor;
+import br.com.devblack21.dynamodb.manager4j.resilience.backoff.single.BackoffSingleWriteExecutor;
+import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
 import br.com.devblack21.dynamodb.manager4j.writer.BatchDeleteManager;
 import br.com.devblack21.dynamodb.manager4j.writer.async.BatchDeleteManagerAsync;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
@@ -19,9 +20,9 @@ import static org.hamcrest.Matchers.is;
 class BatchDeleteClientFactoryTest {
 
   private final DynamoDBMapper dynamoDBMapper = Mockito.mock(DynamoDBMapper.class);
-  private final BackoffExecutor backoffExecutor = Mockito.mock(BackoffExecutor.class);
-  private final ErrorRecoverer<List<Object>> errorRecoverer = Mockito.mock(ErrorRecoverer.class);
-  private final RequestInterceptor<List<Object>> requestInterceptor = Mockito.mock(RequestInterceptor.class);
+  private final BackoffBatchWriteExecutor<Object> backoffExecutor = Mockito.mock(BackoffBatchWriteExecutor.class);
+  private final ErrorRecoverer<Object> errorRecoverer = Mockito.mock(ErrorRecoverer.class);
+  private final RequestInterceptor<Object> requestInterceptor = Mockito.mock(RequestInterceptor.class);
   private final ExecutorService executorService = Mockito.mock(ExecutorService.class);
 
   @Test

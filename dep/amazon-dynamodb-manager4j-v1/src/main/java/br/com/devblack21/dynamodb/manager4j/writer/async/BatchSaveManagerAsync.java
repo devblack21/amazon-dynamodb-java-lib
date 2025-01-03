@@ -1,24 +1,25 @@
 package br.com.devblack21.dynamodb.manager4j.writer.async;
 
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
-import br.com.devblack21.dynamodb.manager4j.resilience.BackoffExecutor;
-import br.com.devblack21.dynamodb.manager4j.resilience.ErrorRecoverer;
+import br.com.devblack21.dynamodb.manager4j.resilience.backoff.batch.BackoffBatchWriteExecutor;
+import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
 import br.com.devblack21.dynamodb.manager4j.writer.BatchSaveManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 
-public class BatchSaveManagerAsync<T> extends AbstractAsyncWriter<List<T>> implements BatchSaveManager<T> {
+public class BatchSaveManagerAsync<T> extends AbstractAsyncBatchWriter<T> implements BatchSaveManager<T> {
 
   private final DynamoDBMapper dynamoDBMapper;
 
   public BatchSaveManagerAsync(final DynamoDBMapper dynamoDBMapper,
-                               final BackoffExecutor backoffExecutor,
-                               final ErrorRecoverer<List<T>> errorRecoverer,
+                               final BackoffBatchWriteExecutor<T> backoffExecutor,
+                               final ErrorRecoverer<T> errorRecoverer,
                                final ExecutorService executorService,
-                               final RequestInterceptor<List<T>> requestInterceptor) {
+                               final RequestInterceptor<T> requestInterceptor) {
     super(backoffExecutor, errorRecoverer, executorService, requestInterceptor);
     this.dynamoDBMapper = dynamoDBMapper;
   }
@@ -29,8 +30,26 @@ public class BatchSaveManagerAsync<T> extends AbstractAsyncWriter<List<T>> imple
   }
 
   @Override
-  public void executor(final List<T> entity) {
-    this.dynamoDBMapper.batchSave(entity);
+  protected List<T> executor(final List<T> entity) {
+    try {
+      return getUnprocessedItens(dynamoDBMapper.batchSave(entity));
+    } catch (final Exception e) {
+      return entity;
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <T> List<T> getUnprocessedItens(final List<DynamoDBMapper.FailedBatch> failedBatches) {
+    final List<Object> failedItems = new ArrayList<>();
+    for (final DynamoDBMapper.FailedBatch failedBatch : failedBatches) {
+      failedBatch.getUnprocessedItems().values()
+        .forEach(writeRequests -> writeRequests.forEach(writeRequest -> {
+          if (writeRequest.getPutRequest() != null) {
+            failedItems.add(writeRequest.getPutRequest().getItem());
+          }
+        }));
+    }
+    return (List<T>) failedItems;
   }
 
 }

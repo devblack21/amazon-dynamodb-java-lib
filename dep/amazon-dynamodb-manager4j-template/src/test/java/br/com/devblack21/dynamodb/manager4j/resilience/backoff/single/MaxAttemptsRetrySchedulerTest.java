@@ -1,4 +1,4 @@
-package br.com.devblack21.dynamodb.manager4j.resilience;
+package br.com.devblack21.dynamodb.manager4j.resilience.backoff.single;
 
 import br.com.devblack21.dynamodb.manager4j.exception.MaxAttemptsRetryException;
 import br.com.devblack21.dynamodb.manager4j.helper.mock.FailureRunnableMock;

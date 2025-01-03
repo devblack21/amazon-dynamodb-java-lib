@@ -1,11 +1,11 @@
-package br.com.devblack21.dynamodb.manager4j.resilience;
+package br.com.devblack21.dynamodb.manager4j.resilience.backoff.single;
 
 import br.com.devblack21.dynamodb.manager4j.exception.MaxAttemptsRetryException;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RetryInterceptor;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class MaxAttemptsRetryExecutor implements BackoffExecutor {
+public class MaxAttemptsRetryExecutor implements BackoffSingleWriteExecutor {
 
   private final int maxAttempts;
   private final RetryInterceptor retryInterceptor;

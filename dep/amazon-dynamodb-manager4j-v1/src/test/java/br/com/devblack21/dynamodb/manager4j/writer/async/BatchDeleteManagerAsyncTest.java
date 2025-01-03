@@ -2,8 +2,8 @@ package br.com.devblack21.dynamodb.manager4j.writer.async;
 
 import br.com.devblack21.dynamodb.manager4j.factory.BatchDeleteClientFactory;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
-import br.com.devblack21.dynamodb.manager4j.resilience.BackoffExecutor;
-import br.com.devblack21.dynamodb.manager4j.resilience.ErrorRecoverer;
+import br.com.devblack21.dynamodb.manager4j.resilience.backoff.batch.BackoffBatchWriteExecutor;
+import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
 import br.com.devblack21.dynamodb.manager4j.writer.BatchDeleteManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import org.awaitility.Awaitility;
@@ -18,6 +18,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import static org.mockito.Mockito.*;
 
@@ -26,9 +27,9 @@ class BatchDeleteManagerAsyncTest {
   private final Integer TIMEOUT = 3;
 
   private DynamoDBMapper dynamoDBMapper;
-  private BackoffExecutor mockBackoffExecutor;
-  private ErrorRecoverer<List<Object>> mockErrorRecoverer;
-  private RequestInterceptor<List<Object>> mockRequestInterceptor;
+  private BackoffBatchWriteExecutor<Object> mockBackoffExecutor;
+  private ErrorRecoverer<Object> mockErrorRecoverer;
+  private RequestInterceptor<Object> mockRequestInterceptor;
   private BatchDeleteManager<Object> testWriter;
   private BatchDeleteManager<Object> testWriterWithoutBackoffAndRecoverer;
   private static ExecutorService executorService;
@@ -46,7 +47,7 @@ class BatchDeleteManagerAsyncTest {
   @BeforeEach
   void setUp() {
     dynamoDBMapper = mock(DynamoDBMapper.class);
-    mockBackoffExecutor = mock(BackoffExecutor.class);
+    mockBackoffExecutor = mock(BackoffBatchWriteExecutor.class);
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
@@ -91,7 +92,7 @@ class BatchDeleteManagerAsyncTest {
     testWriter.batchDelete(List.of(entity));
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
-      verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
+      verify(mockBackoffExecutor, times(1)).execute(any(Function.class), anyList());
       verifyNoInteractions(mockErrorRecoverer);
       verify(mockRequestInterceptor, never()).logError(anyList(), any());
     });
@@ -108,9 +109,9 @@ class BatchDeleteManagerAsyncTest {
     testWriter.batchDelete(List.of(entity));
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
-      verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
+      verify(mockBackoffExecutor, times(1)).execute(any(Function.class), anyList());
       verify(mockErrorRecoverer, times(1)).recover(anyList());
-      verify(mockRequestInterceptor, never()).logError(anyList(), any());
+      verify(mockRequestInterceptor, times(1)).logError(anyList(), any());
     });
   }
 
@@ -125,7 +126,7 @@ class BatchDeleteManagerAsyncTest {
     testWriter.batchDelete(List.of(entity));
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
-      verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
+      verify(mockBackoffExecutor, times(1)).execute(any(Function.class), anyList());
       verify(mockErrorRecoverer, times(1)).recover(anyList());
       verify(mockRequestInterceptor, never()).logError(anyList(), any());
       verify(mockRequestInterceptor, never()).logSuccess(any());
@@ -151,8 +152,8 @@ class BatchDeleteManagerAsyncTest {
   }
 
   private void simulateBackoffFailure() throws ExecutionException, InterruptedException {
-    final ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
-    doThrow(RuntimeException.class).when(mockBackoffExecutor).execute(runnableCaptor.capture());
+    final ArgumentCaptor<Function<List<Object>, List<Object>>> captor = ArgumentCaptor.forClass(Function.class);
+    doThrow(RuntimeException.class).when(mockBackoffExecutor).execute(captor.capture(), anyList());
   }
 
   private void simulateRecoveryFailure() {
@@ -160,8 +161,8 @@ class BatchDeleteManagerAsyncTest {
   }
 
   private void captureRunnableForRetry() throws ExecutionException, InterruptedException {
-    ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
-    doNothing().when(mockBackoffExecutor).execute(runnableCaptor.capture());
+    final ArgumentCaptor<Function<List<Object>, List<Object>>> captor = ArgumentCaptor.forClass(Function.class);
+    doNothing().when(mockBackoffExecutor).execute(captor.capture(), anyList());
   }
 
 }

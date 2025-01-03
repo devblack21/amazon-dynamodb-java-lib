@@ -1,6 +1,5 @@
-package br.com.devblack21.dynamodb.manager4j.resilience;
+package br.com.devblack21.dynamodb.manager4j.resilience.backoff.single;
 
-import br.com.devblack21.dynamodb.manager4j.exception.MaxAttemptsRetryException;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RetryInterceptor;
 import br.com.devblack21.dynamodb.manager4j.resilience.algorithm.BackoffDelayAlgorithm;
 import lombok.RequiredArgsConstructor;
@@ -10,29 +9,18 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
-public class MaxAttemptsRetryScheduler implements BackoffExecutor {
+public class InfiniteRetryScheduler implements BackoffSingleWriteExecutor {
 
-  private final int maxAttempts;
   private final BackoffDelayAlgorithm delayAlgorithm;
   private final ScheduledExecutorService scheduledExecutorService;
   private final RetryInterceptor retryInterceptor;
 
   @Override
-  public void execute(final Runnable runnable) {
-    try {
-      this.executeWithRetry(runnable, 0);
-    } catch (final ExecutionException | InterruptedException e) {
-      throw new MaxAttemptsRetryException();
-    } finally {
-      scheduledExecutorService.shutdown();
-    }
+  public void execute(final Runnable runnable) throws ExecutionException, InterruptedException {
+    this.executeWithRetry(runnable, 0);
   }
 
   private void executeWithRetry(final Runnable runnable, final int attemptCount) throws ExecutionException, InterruptedException {
-    if (attemptCount >= this.maxAttempts) {
-      throw new MaxAttemptsRetryException();
-    }
-
     try {
       this.logRetryStart();
       runnable.run();
@@ -49,8 +37,6 @@ public class MaxAttemptsRetryScheduler implements BackoffExecutor {
     this.scheduledExecutorService.schedule(() -> {
         try {
           executeWithRetry(runnable, nextAttemptCount);
-        } catch (final MaxAttemptsRetryException e) {
-          throw e;
         } catch (final Exception e) {
           throw new RuntimeException(e);
         }
@@ -69,4 +55,5 @@ public class MaxAttemptsRetryScheduler implements BackoffExecutor {
       this.retryInterceptor.logRetryEnd();
     }
   }
+
 }

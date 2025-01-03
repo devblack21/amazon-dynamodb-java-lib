@@ -1,8 +1,8 @@
 package br.com.devblack21.dynamodb.manager4j.writer.sync;
 
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
-import br.com.devblack21.dynamodb.manager4j.resilience.BackoffExecutor;
-import br.com.devblack21.dynamodb.manager4j.resilience.ErrorRecoverer;
+import br.com.devblack21.dynamodb.manager4j.resilience.backoff.single.BackoffSingleWriteExecutor;
+import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
 import br.com.devblack21.dynamodb.manager4j.writer.DeleteManager;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 
@@ -12,7 +12,7 @@ public class DeleteManagerSync<T> extends AbstractSyncWriter<T> implements Delet
 
   public DeleteManagerSync(
     final DynamoDbTable<T> dynamoDbTable,
-    final BackoffExecutor backoffExecutor,
+    final BackoffSingleWriteExecutor backoffExecutor,
     final ErrorRecoverer<T> errorRecoverer,
     final RequestInterceptor<T> requestInterceptor) {
     super(backoffExecutor, errorRecoverer, requestInterceptor);
@@ -26,7 +26,7 @@ public class DeleteManagerSync<T> extends AbstractSyncWriter<T> implements Delet
 
   @Override
   public void executor(final T entity) {
-    this.dynamoDbTable.putItem(entity);
+    this.dynamoDbTable.deleteItem(entity);
   }
 
 

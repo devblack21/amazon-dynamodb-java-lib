@@ -2,8 +2,8 @@ package br.com.devblack21.dynamodb.manager4j.writer.async;
 
 import br.com.devblack21.dynamodb.manager4j.factory.DeleteClientFactory;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
-import br.com.devblack21.dynamodb.manager4j.resilience.BackoffExecutor;
-import br.com.devblack21.dynamodb.manager4j.resilience.ErrorRecoverer;
+import br.com.devblack21.dynamodb.manager4j.resilience.backoff.single.BackoffSingleWriteExecutor;
+import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
 import br.com.devblack21.dynamodb.manager4j.writer.DeleteManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import org.awaitility.Awaitility;
@@ -25,7 +25,7 @@ class DeleteManagerAsyncTest {
   private final Integer TIMEOUT = 3;
 
   private DynamoDBMapper dynamoDBMapper;
-  private BackoffExecutor mockBackoffExecutor;
+  private BackoffSingleWriteExecutor mockBackoffExecutor;
   private ErrorRecoverer<Object> mockErrorRecoverer;
   private RequestInterceptor<Object> mockRequestInterceptor;
   private DeleteManager<Object> testWriter;
@@ -45,7 +45,7 @@ class DeleteManagerAsyncTest {
   @BeforeEach
   void setUp() {
     dynamoDBMapper = mock(DynamoDBMapper.class);
-    mockBackoffExecutor = mock(BackoffExecutor.class);
+    mockBackoffExecutor = mock(BackoffSingleWriteExecutor.class);
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
@@ -108,7 +108,7 @@ class DeleteManagerAsyncTest {
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
       verify(mockErrorRecoverer, times(1)).recover(entity);
-      verify(mockRequestInterceptor, never()).logError(eq(entity), any());
+      verify(mockRequestInterceptor, times(1)).logError(eq(entity), any());
     });
   }
 
@@ -125,7 +125,7 @@ class DeleteManagerAsyncTest {
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
       verify(mockErrorRecoverer, times(1)).recover(entity);
-      verify(mockRequestInterceptor, never()).logError(eq(entity), any());
+      verify(mockRequestInterceptor, times(1)).logError(eq(entity), any());
       verify(mockRequestInterceptor, never()).logSuccess(any());
     });
   }
