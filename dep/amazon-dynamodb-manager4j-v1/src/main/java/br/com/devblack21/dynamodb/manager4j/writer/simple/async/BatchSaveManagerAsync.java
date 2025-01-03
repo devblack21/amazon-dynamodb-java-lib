@@ -15,17 +15,17 @@ import java.util.concurrent.ExecutorService;
 public class BatchSaveManagerAsync<T> extends AbstractAsyncBatchWriter<T> implements BatchSaveManager<T> {
 
   private final DynamoDBMapper dynamoDBMapper;
-  private final FailedBatchPutRequestTransformer<T> transformer;
+  private final FailedBatchPutRequestTransformer<T> failedBatchtransformer;
 
   public BatchSaveManagerAsync(final DynamoDBMapper dynamoDBMapper,
-                               final FailedBatchPutRequestTransformer<T> transformer,
+                               final FailedBatchPutRequestTransformer<T> failedBatchtransformer,
                                final BackoffBatchWriteExecutor<T> backoffExecutor,
                                final ErrorRecoverer<T> errorRecoverer,
                                final ExecutorService executorService,
                                final RequestInterceptor<T> requestInterceptor) {
     super(backoffExecutor, errorRecoverer, executorService, requestInterceptor);
     this.dynamoDBMapper = dynamoDBMapper;
-    this.transformer = transformer;
+    this.failedBatchtransformer = failedBatchtransformer;
   }
 
   @Override
@@ -36,7 +36,7 @@ public class BatchSaveManagerAsync<T> extends AbstractAsyncBatchWriter<T> implem
   @Override
   protected List<UnprocessedItem<T>> executor(final List<T> entities) {
     try {
-      return UnprocessedItem.unprocessedItems(transformer.transform(dynamoDBMapper.batchSave(entities)));
+      return UnprocessedItem.unprocessedItems(this.failedBatchtransformer.transform(dynamoDBMapper.batchSave(entities)));
     } catch (final Exception e) {
       return UnprocessedItem.unprocessedItems(entities);
     }

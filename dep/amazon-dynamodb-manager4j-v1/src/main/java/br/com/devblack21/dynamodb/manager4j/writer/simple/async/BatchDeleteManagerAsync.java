@@ -15,17 +15,17 @@ import java.util.concurrent.ExecutorService;
 public class BatchDeleteManagerAsync<T> extends AbstractAsyncBatchWriter<T> implements BatchDeleteManager<T> {
 
   private final DynamoDBMapper dynamoDBMapper;
-  private final FailedBatchDeleteRequestTransformer<T> transformer;
+  private final FailedBatchDeleteRequestTransformer<T> failedBatchtransformer;
 
   public BatchDeleteManagerAsync(final DynamoDBMapper dynamoDBMapper,
-                                 final FailedBatchDeleteRequestTransformer<T> transformer,
+                                 final FailedBatchDeleteRequestTransformer<T> failedBatchtransformer,
                                  final BackoffBatchWriteExecutor<T> backoffExecutor,
                                  final ErrorRecoverer<T> errorRecoverer,
                                  final ExecutorService executorService,
                                  final RequestInterceptor<T> requestInterceptor) {
     super(backoffExecutor, errorRecoverer, executorService, requestInterceptor);
     this.dynamoDBMapper = dynamoDBMapper;
-    this.transformer = transformer;
+    this.failedBatchtransformer = failedBatchtransformer;
   }
 
   @Override
@@ -36,7 +36,7 @@ public class BatchDeleteManagerAsync<T> extends AbstractAsyncBatchWriter<T> impl
   @Override
   public List<UnprocessedItem<T>> executor(final List<T> entities) {
     try {
-      return UnprocessedItem.unprocessedItems(transformer.transform(dynamoDBMapper.batchDelete(entities)));
+      return UnprocessedItem.unprocessedItems(this.failedBatchtransformer.transform(dynamoDBMapper.batchDelete(entities)));
     } catch (final Exception e) {
       return UnprocessedItem.unprocessedItems(entities);
     }

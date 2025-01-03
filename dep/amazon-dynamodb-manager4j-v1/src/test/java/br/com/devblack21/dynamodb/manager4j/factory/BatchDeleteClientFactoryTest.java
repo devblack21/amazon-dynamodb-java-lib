@@ -35,100 +35,85 @@ class BatchDeleteClientFactoryTest {
   @Test
   void testCreateSyncClientWithPartialParameters() {
     final BatchDeleteManager<Object> client = BatchDeleteClientFactory.createSyncClient(dynamoDBMapper, transformer, backoffExecutor, requestInterceptor);
-
     assertThat(client, is(instanceOf(BatchDeleteManager.class)));
   }
 
   @Test
   void testCreateSyncClientWithMinimalParameters() {
     final BatchDeleteManager<Object> client = BatchDeleteClientFactory.createSyncClient(dynamoDBMapper, transformer);
-
     assertThat(client, is(instanceOf(BatchDeleteManager.class)));
   }
 
   @Test
   void testCreateAsyncClientWithAllParameters() {
     final BatchDeleteManager<Object> client = BatchDeleteClientFactory.createAsyncClient(dynamoDBMapper, transformer, backoffExecutor, errorRecoverer, executorService, requestInterceptor);
-
     assertThat(client, is(instanceOf(BatchDeleteManagerAsync.class)));
   }
 
   @Test
   void testCreateAsyncClientWithPartialParameters() {
     final BatchDeleteManager<Object> client = BatchDeleteClientFactory.createAsyncClient(dynamoDBMapper, transformer, backoffExecutor, executorService, requestInterceptor);
-
     assertThat(client, is(instanceOf(BatchDeleteManagerAsync.class)));
   }
 
   @Test
   void testCreateAsyncClientWithMinimalParameters() {
     final BatchDeleteManager<Object> client = BatchDeleteClientFactory.createAsyncClient(dynamoDBMapper, transformer, executorService);
-
     assertThat(client, is(instanceOf(BatchDeleteManagerAsync.class)));
   }
 
   @Test
   void testCreateSyncClientWithNullBackoffExecutor() {
     final BatchDeleteManager<Object> client = BatchDeleteClientFactory.createSyncClient(dynamoDBMapper, transformer, errorRecoverer, requestInterceptor);
-
     assertThat(client, is(instanceOf(BatchDeleteManager.class)));
   }
 
   @Test
   void testCreateAsyncClientWithNullBackoffExecutor() {
     final BatchDeleteManager<Object> client = BatchDeleteClientFactory.createAsyncClient(dynamoDBMapper, transformer, errorRecoverer, executorService, requestInterceptor);
-
     assertThat(client, is(instanceOf(BatchDeleteManagerAsync.class)));
   }
 
   @Test
   void testCreateSyncClientWithNullErrorRecoverer() {
     final BatchDeleteManager<Object> client = BatchDeleteClientFactory.createSyncClient(dynamoDBMapper, transformer, backoffExecutor, requestInterceptor);
-
     assertThat(client, is(instanceOf(BatchDeleteManager.class)));
   }
 
   @Test
   void testCreateAsyncClientWithNullExecutorService() {
     final BatchDeleteManager<Object> client = BatchDeleteClientFactory.createAsyncClient(dynamoDBMapper, transformer, backoffExecutor, errorRecoverer, null, requestInterceptor);
-
     assertThat(client, is(instanceOf(BatchDeleteManagerAsync.class)));
   }
 
   @Test
   void testCreateAsyncClientWithNullRequestInterceptor() {
     final BatchDeleteManager<Object> client = BatchDeleteClientFactory.createAsyncClient(dynamoDBMapper, transformer, backoffExecutor, errorRecoverer, executorService, null);
-
     assertThat(client, is(instanceOf(BatchDeleteManagerAsync.class)));
   }
 
   @Test
   void testCreateSyncClientWithNullParameters() {
     final BatchDeleteManager<Object> client = BatchDeleteClientFactory.createSyncClient(dynamoDBMapper, transformer, null, null, null);
-
     assertThat(client, is(instanceOf(BatchDeleteManager.class)));
   }
 
   @Test
   void testCreateAsyncClientWithNullParameters() {
     final BatchDeleteManager<Object> client = BatchDeleteClientFactory.createAsyncClient(dynamoDBMapper, transformer, null, null, executorService, null);
-
     assertThat(client, is(instanceOf(BatchDeleteManagerAsync.class)));
   }
 
   @Test
   void testCreateSyncClientWithOnlyDynamoDBMapper() {
     final BatchDeleteManager<Object> client = BatchDeleteClientFactory.createSyncClient(dynamoDBMapper, transformer);
-
     assertThat(client, is(instanceOf(BatchDeleteManager.class)));
   }
 
   @Test
   void testCreateAsyncClientWithOnlyExecutorService() {
     final BatchDeleteManager<Object> client = BatchDeleteClientFactory.createAsyncClient(dynamoDBMapper, transformer, executorService);
-
     assertThat(client, is(instanceOf(BatchDeleteManagerAsync.class)));
   }
-
 
 }

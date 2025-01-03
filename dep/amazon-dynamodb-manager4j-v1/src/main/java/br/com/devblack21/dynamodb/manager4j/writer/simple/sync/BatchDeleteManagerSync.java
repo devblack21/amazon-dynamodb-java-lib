@@ -13,16 +13,16 @@ import java.util.List;
 public class BatchDeleteManagerSync<T> extends AbstractSyncBatchWriter<T> implements BatchDeleteManager<T> {
 
   private final DynamoDBMapper dynamoDBMapper;
-  private final FailedBatchDeleteRequestTransformer<T> transformer;
+  private final FailedBatchDeleteRequestTransformer<T> failedBatchtransformer;
 
   public BatchDeleteManagerSync(final DynamoDBMapper dynamoDBMapper,
-                                final FailedBatchDeleteRequestTransformer<T> transformer,
+                                final FailedBatchDeleteRequestTransformer<T> failedBatchtransformer,
                                 final BackoffBatchWriteExecutor<T> backoffExecutor,
                                 final ErrorRecoverer<T> errorRecoverer,
                                 final RequestInterceptor<T> requestInterceptor) {
     super(backoffExecutor, errorRecoverer, requestInterceptor);
     this.dynamoDBMapper = dynamoDBMapper;
-    this.transformer = transformer;
+    this.failedBatchtransformer = failedBatchtransformer;
   }
 
 
@@ -34,7 +34,7 @@ public class BatchDeleteManagerSync<T> extends AbstractSyncBatchWriter<T> implem
   @Override
   public List<UnprocessedItem<T>> executor(final List<T> entity) {
     try {
-      return UnprocessedItem.unprocessedItems(transformer.transform(dynamoDBMapper.batchDelete(entity)));
+      return UnprocessedItem.unprocessedItems(this.failedBatchtransformer.transform(dynamoDBMapper.batchDelete(entity)));
     } catch (final Exception e) {
       return UnprocessedItem.unprocessedItems(entity);
     }

@@ -13,16 +13,16 @@ import java.util.List;
 public class BatchSaveManagerSync<T> extends AbstractSyncBatchWriter<T> implements BatchSaveManager<T> {
 
   private final DynamoDBMapper dynamoDBMapper;
-  private final FailedBatchPutRequestTransformer<T> transformer;
+  private final FailedBatchPutRequestTransformer<T> failedBatchtransformer;
 
   public BatchSaveManagerSync(final DynamoDBMapper dynamoDBMapper,
-                              final FailedBatchPutRequestTransformer<T> transformer,
+                              final FailedBatchPutRequestTransformer<T> failedBatchtransformer,
                               final BackoffBatchWriteExecutor<T> backoffExecutor,
                               final ErrorRecoverer<T> errorRecoverer,
                               final RequestInterceptor<T> requestInterceptor) {
     super(backoffExecutor, errorRecoverer, requestInterceptor);
     this.dynamoDBMapper = dynamoDBMapper;
-    this.transformer = transformer;
+    this.failedBatchtransformer = failedBatchtransformer;
   }
 
 
@@ -34,7 +34,7 @@ public class BatchSaveManagerSync<T> extends AbstractSyncBatchWriter<T> implemen
   @Override
   protected List<UnprocessedItem<T>> executor(final List<T> entities) {
     try {
-      return UnprocessedItem.unprocessedItems(transformer.transform(dynamoDBMapper.batchSave(entities)));
+      return UnprocessedItem.unprocessedItems(this.failedBatchtransformer.transform(dynamoDBMapper.batchSave(entities)));
     } catch (final Exception e) {
       return UnprocessedItem.unprocessedItems(entities);
     }

@@ -6,6 +6,7 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.PutRequest;
 import com.amazonaws.services.dynamodbv2.model.WriteRequest;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -114,8 +115,9 @@ class FailedBatchPutRequestTransformerTest {
     assertThat(result.get(0), is(nullValue()));
   }
 
+  @Getter
   @EqualsAndHashCode
-  class MyItem {
+  static class MyItem {
     private final String id;
     private final String name;
 
@@ -124,12 +126,5 @@ class FailedBatchPutRequestTransformerTest {
       this.name = name;
     }
 
-    public String getId() {
-      return id;
-    }
-
-    public String getName() {
-      return name;
-    }
   }
 }

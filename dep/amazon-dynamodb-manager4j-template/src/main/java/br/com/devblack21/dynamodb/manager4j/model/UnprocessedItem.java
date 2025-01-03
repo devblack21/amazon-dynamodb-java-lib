@@ -28,8 +28,7 @@ public class UnprocessedItem<T> {
 
     return unprocesseds;
   }
-
-
+  
   public static <T> List<T> getEntities(final List<UnprocessedItem<T>> unprocessedItems) {
     return unprocessedItems.stream().map(UnprocessedItem::getEntity).collect(Collectors.toList());
   }
