@@ -36,12 +36,16 @@ abstract class AbstractSyncWriter {
   }
 
   private void handleRecoveryOrThrow(final TableEntity entity, final Exception exceptionToHandle) {
-    if (this.isEnableErrorRecoverer()) {
-      this.retryPolicyConfiguration.getErrorRecoverer().recover(entity);
-      this.logError(entity, exceptionToHandle);
-    } else {
-      this.logError(entity, exceptionToHandle);
-      throw new RuntimeException("Failed to save entity after retry attempts.", exceptionToHandle);
+    try {
+      if (this.isEnableErrorRecoverer()) {
+        this.retryPolicyConfiguration.getErrorRecoverer().recover(entity);
+        this.logError(entity, exceptionToHandle);
+      } else {
+        throw new RuntimeException("Failed to save entity after retry attempts.", exceptionToHandle);
+      }
+    } catch (final Exception e) {
+      this.logError(entity, e);
+      throw e;
     }
   }
 

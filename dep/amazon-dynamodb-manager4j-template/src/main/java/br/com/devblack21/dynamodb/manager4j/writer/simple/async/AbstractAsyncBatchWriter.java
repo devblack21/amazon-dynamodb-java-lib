@@ -44,11 +44,13 @@ abstract class AbstractAsyncBatchWriter {
   }
 
   private void handleRecoveryOrThrow(final List<? extends TableEntity> entities, final Throwable exceptionToHandle) {
-    if (this.isEnableErrorRecoverer()) {
-      this.retryPolicyConfiguration.getErrorRecoverer().recover(entities);
+    try {
+      if (this.isEnableErrorRecoverer()) {
+        this.retryPolicyConfiguration.getErrorRecoverer().recover(entities);
+      }
+    } finally {
+      this.logError(entities, exceptionToHandle);
     }
-
-    this.logError(entities, exceptionToHandle);
   }
 
   private void logError(final List<? extends TableEntity> entities, final Throwable throwable) {

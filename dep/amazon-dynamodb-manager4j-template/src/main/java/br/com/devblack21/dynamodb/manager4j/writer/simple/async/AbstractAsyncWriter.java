@@ -42,11 +42,14 @@ abstract class AbstractAsyncWriter {
   }
 
   private void handleRecoveryOrThrow(final TableEntity entity, final Throwable exceptionToHandle) {
-    if (this.isEnableErrorRecoverer()) {
-      this.retryPolicyConfiguration.getErrorRecoverer().recover(entity);
-    }
+    try {
+      if (this.isEnableErrorRecoverer()) {
+        this.retryPolicyConfiguration.getErrorRecoverer().recover(entity);
+      }
 
-    this.logError(entity, exceptionToHandle);
+    } finally {
+      this.logError(entity, exceptionToHandle);
+    }
   }
 
   private void logError(final TableEntity entity, final Throwable throwable) {

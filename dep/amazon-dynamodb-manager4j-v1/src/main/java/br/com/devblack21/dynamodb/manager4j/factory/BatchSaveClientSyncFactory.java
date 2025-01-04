@@ -27,10 +27,16 @@ public class BatchSaveClientSyncFactory {
     return createClient(dynamoDBMapper, transformer, retryPolicyConfiguration, null);
   }
 
+
   public static BatchSaveManager createClient(final DynamoDBMapper dynamoDBMapper,
                                               final FailedBatchPutRequestTransformer<? extends TableEntity> transformer) {
-    return createClient(dynamoDBMapper, transformer, null);
+    return createClient(dynamoDBMapper, transformer, null, null);
   }
 
+  public static BatchSaveManager createClient(final DynamoDBMapper dynamoDBMapper,
+                                              final FailedBatchPutRequestTransformer<? extends TableEntity> transformer,
+                                              final RequestInterceptor requestInterceptor) {
+    return createClient(dynamoDBMapper, transformer, null, requestInterceptor);
 
+  }
 }
