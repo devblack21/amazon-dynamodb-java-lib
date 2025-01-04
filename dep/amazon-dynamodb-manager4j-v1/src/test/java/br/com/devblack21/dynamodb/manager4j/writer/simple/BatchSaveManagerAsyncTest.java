@@ -1,14 +1,13 @@
-package br.com.devblack21.dynamodb.manager4j.writer.simple.async;
+package br.com.devblack21.dynamodb.manager4j.writer.simple;
 
 import br.com.devblack21.dynamodb.manager4j.configuration.BatchWriteRetryPolicyConfiguration;
-import br.com.devblack21.dynamodb.manager4j.factory.BatchDeleteClientAsyncFactory;
+import br.com.devblack21.dynamodb.manager4j.factory.BatchSaveClientAsyncFactory;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.MyItem;
 import br.com.devblack21.dynamodb.manager4j.resilience.backoff.batch.BackoffBatchWriteExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
-import br.com.devblack21.dynamodb.manager4j.transform.FailedBatchDeleteRequestTransformer;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.templates.AbstractBatchDeleteManagerTemplate;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.BatchDeleteManager;
+import br.com.devblack21.dynamodb.manager4j.transform.FailedBatchPutRequestTransformer;
+import br.com.devblack21.dynamodb.manager4j.writer.simple.templates.AbstractBatchSaveManagerTemplate;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
@@ -27,17 +26,17 @@ import java.util.function.Function;
 import static br.com.devblack21.dynamodb.manager4j.model.MyItem.getMyItem;
 import static org.mockito.Mockito.*;
 
-class BatchDeleteManagerAsyncTest extends AbstractBatchDeleteManagerTemplate {
+class BatchSaveManagerAsyncTest extends AbstractBatchSaveManagerTemplate {
 
   private final Integer TIMEOUT = 3;
 
   private DynamoDBMapper dynamoDBMapper;
-  private FailedBatchDeleteRequestTransformer<MyItem> transformer;
+  private FailedBatchPutRequestTransformer<MyItem> transformer;
   private BackoffBatchWriteExecutor mockBackoffExecutor;
   private ErrorRecoverer mockErrorRecoverer;
   private RequestInterceptor mockRequestInterceptor;
-  private BatchDeleteManager testWriter;
-  private BatchDeleteManager testWriterWithoutBackoffAndRecoverer;
+  private BatchSaveManager testWriter;
+  private BatchSaveManager testWriterWithoutBackoffAndRecoverer;
   private static ExecutorService executorService;
 
   @BeforeAll
@@ -53,36 +52,35 @@ class BatchDeleteManagerAsyncTest extends AbstractBatchDeleteManagerTemplate {
   @BeforeEach
   void setUp() {
     dynamoDBMapper = mock(DynamoDBMapper.class);
-    transformer = mock(FailedBatchDeleteRequestTransformer.class);
+    transformer = mock(FailedBatchPutRequestTransformer.class);
     mockBackoffExecutor = mock(BackoffBatchWriteExecutor.class);
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
-    testWriter = BatchDeleteClientAsyncFactory.createClient(
-      dynamoDBMapper,
+    testWriter = BatchSaveClientAsyncFactory.createClient(dynamoDBMapper,
       transformer,
       BatchWriteRetryPolicyConfiguration.builder()
         .backoffBatchWriteExecutor(mockBackoffExecutor)
         .errorRecoverer(mockErrorRecoverer)
         .build(),
       executorService,
-      mockRequestInterceptor
-    );
+      mockRequestInterceptor);
 
-    testWriterWithoutBackoffAndRecoverer = BatchDeleteClientAsyncFactory.createClient(
-      dynamoDBMapper,
+
+    testWriterWithoutBackoffAndRecoverer = BatchSaveClientAsyncFactory.createClient(dynamoDBMapper,
       transformer,
       executorService,
-      mockRequestInterceptor
-    );
-
+      mockRequestInterceptor);
   }
 
   @Test
   void shouldExecuteSuccessfullyWithoutErrors() {
     final MyItem entity = getMyItem();
 
-    testWriter.batchDelete(List.of(entity));
+    when(dynamoDBMapper.batchSave(anyList())).thenReturn(List.of());
+    when(transformer.transform(anyList())).thenReturn(List.of());
+
+    testWriter.batchSave(List.of(entity));
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verifyNoInteractions(mockBackoffExecutor, mockErrorRecoverer);
@@ -98,12 +96,28 @@ class BatchDeleteManagerAsyncTest extends AbstractBatchDeleteManagerTemplate {
     simulateDynamoDbFailure(dynamoDBMapper);
     captureFunctionForRetry(mockBackoffExecutor);
 
-    testWriter.batchDelete(List.of(entity));
+    testWriter.batchSave(List.of(entity));
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Function.class), anyList());
       verifyNoInteractions(mockErrorRecoverer);
       verify(mockRequestInterceptor, never()).logError(anyList(), any());
+    });
+
+  }
+
+  @Test
+  void testBatchSaveFailureWithUnprocessedItems() throws ExecutionException, InterruptedException {
+    final List<MyItem> itemsToSave = Arrays.asList(getMyItem(), getMyItem());
+
+    simulateFailedBatch(dynamoDBMapper, transformer);
+
+    testWriter.batchSave(itemsToSave);
+
+    Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
+      verify(mockBackoffExecutor, times(1)).execute(any(Function.class), anyList());
+      verify(mockRequestInterceptor, never()).logError(anyList(), any());
+      verify(mockRequestInterceptor, times(1)).logSuccess(anyList());
     });
 
   }
@@ -115,7 +129,7 @@ class BatchDeleteManagerAsyncTest extends AbstractBatchDeleteManagerTemplate {
     simulateDynamoDbFailure(dynamoDBMapper);
     simulateBackoffFailure(mockBackoffExecutor);
 
-    testWriter.batchDelete(List.of(entity));
+    testWriter.batchSave(List.of(entity));
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Function.class), anyList());
@@ -125,30 +139,15 @@ class BatchDeleteManagerAsyncTest extends AbstractBatchDeleteManagerTemplate {
   }
 
   @Test
-  void testBatchSaveFailureWithUnprocessedItems() {
-    final List<MyItem> items = Arrays.asList(getMyItem(), getMyItem());
-
-    simulateFailedBatch(dynamoDBMapper, transformer);
-
-    testWriter.batchDelete(items);
-
-    Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
-      verify(mockBackoffExecutor, times(1)).execute(any(Function.class), any());
-      verify(mockRequestInterceptor, never()).logError(anyList(), any());
-      verify(mockRequestInterceptor, times(1)).logSuccess(anyList());
-    });
-  }
-
-
-  @Test
   void shouldLogErrorWhenRecoveryFails() throws ExecutionException, InterruptedException {
     final MyItem entity = getMyItem();
 
+    simulateFailedBatch(dynamoDBMapper, transformer);
     simulateDynamoDbFailure(dynamoDBMapper);
     simulateBackoffFailure(mockBackoffExecutor);
     simulateRecoveryFailure(mockErrorRecoverer);
 
-    testWriter.batchDelete(List.of(entity));
+    testWriter.batchSave(List.of(entity));
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Function.class), anyList());
@@ -164,7 +163,7 @@ class BatchDeleteManagerAsyncTest extends AbstractBatchDeleteManagerTemplate {
 
     simulateDynamoDbFailure(dynamoDBMapper);
 
-    testWriterWithoutBackoffAndRecoverer.batchDelete(List.of(entity));
+    testWriterWithoutBackoffAndRecoverer.batchSave(List.of(entity));
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verifyNoInteractions(mockBackoffExecutor, mockErrorRecoverer);

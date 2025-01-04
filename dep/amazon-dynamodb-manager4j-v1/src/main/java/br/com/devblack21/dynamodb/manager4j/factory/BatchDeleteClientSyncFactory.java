@@ -5,7 +5,7 @@ import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 import br.com.devblack21.dynamodb.manager4j.transform.FailedBatchDeleteRequestTransformer;
 import br.com.devblack21.dynamodb.manager4j.writer.simple.BatchDeleteManager;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.sync.BatchDeleteManagerSync;
+import br.com.devblack21.dynamodb.manager4j.writer.simple.BatchDeleteManagerSync;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
 public class BatchDeleteClientSyncFactory {

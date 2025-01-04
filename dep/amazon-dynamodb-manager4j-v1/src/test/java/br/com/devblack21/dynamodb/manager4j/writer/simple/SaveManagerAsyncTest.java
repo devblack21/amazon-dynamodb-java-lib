@@ -1,13 +1,12 @@
-package br.com.devblack21.dynamodb.manager4j.writer.simple.async;
+package br.com.devblack21.dynamodb.manager4j.writer.simple;
 
 import br.com.devblack21.dynamodb.manager4j.configuration.SingleWriteRetryPolicyConfiguration;
-import br.com.devblack21.dynamodb.manager4j.factory.DeleteClientAsyncFactory;
+import br.com.devblack21.dynamodb.manager4j.factory.SaveClientAsyncFactory;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.MyItem;
 import br.com.devblack21.dynamodb.manager4j.resilience.backoff.single.BackoffSingleWriteExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.templates.AbstractSingleDeleteManagerTemplate;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.DeleteManager;
+import br.com.devblack21.dynamodb.manager4j.writer.simple.templates.AbstractSingleSaveManagerTemplate;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
@@ -23,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import static br.com.devblack21.dynamodb.manager4j.model.MyItem.getMyItem;
 import static org.mockito.Mockito.*;
 
-class DeleteManagerAsyncTest extends AbstractSingleDeleteManagerTemplate {
+class SaveManagerAsyncTest extends AbstractSingleSaveManagerTemplate {
 
   private final Integer TIMEOUT = 3;
 
@@ -31,8 +30,8 @@ class DeleteManagerAsyncTest extends AbstractSingleDeleteManagerTemplate {
   private BackoffSingleWriteExecutor mockBackoffExecutor;
   private ErrorRecoverer mockErrorRecoverer;
   private RequestInterceptor mockRequestInterceptor;
-  private DeleteManager testWriter;
-  private DeleteManager testWriterWithoutBackoffAndRecoverer;
+  private SaveManager testWriter;
+  private SaveManager testWriterWithoutBackoffAndRecoverer;
   private static ExecutorService executorService;
 
   @BeforeAll
@@ -52,7 +51,7 @@ class DeleteManagerAsyncTest extends AbstractSingleDeleteManagerTemplate {
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
-    testWriter = DeleteClientAsyncFactory.createClient(
+    testWriter = SaveClientAsyncFactory.createClient(
       dynamoDBMapper,
       SingleWriteRetryPolicyConfiguration.builder()
         .backoffSingleWriteExecutor(mockBackoffExecutor)
@@ -62,7 +61,7 @@ class DeleteManagerAsyncTest extends AbstractSingleDeleteManagerTemplate {
       mockRequestInterceptor
     );
 
-    testWriterWithoutBackoffAndRecoverer = DeleteClientAsyncFactory.createClient(
+    testWriterWithoutBackoffAndRecoverer = SaveClientAsyncFactory.createClient(
       dynamoDBMapper,
       executorService,
       mockRequestInterceptor
@@ -73,7 +72,7 @@ class DeleteManagerAsyncTest extends AbstractSingleDeleteManagerTemplate {
   void shouldExecuteSuccessfullyWithoutErrors() {
     final MyItem entity = getMyItem();
 
-    testWriter.delete(entity);
+    testWriter.save(entity);
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verifyNoInteractions(mockBackoffExecutor, mockErrorRecoverer);
@@ -89,7 +88,7 @@ class DeleteManagerAsyncTest extends AbstractSingleDeleteManagerTemplate {
     simulateDynamoDbFailure(dynamoDBMapper);
     captureRunnableForRetry(mockBackoffExecutor);
 
-    testWriter.delete(entity);
+    testWriter.save(entity);
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
@@ -106,7 +105,7 @@ class DeleteManagerAsyncTest extends AbstractSingleDeleteManagerTemplate {
     simulateDynamoDbFailure(dynamoDBMapper);
     simulateBackoffFailure(mockBackoffExecutor);
 
-    testWriter.delete(entity);
+    testWriter.save(entity);
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
@@ -123,7 +122,7 @@ class DeleteManagerAsyncTest extends AbstractSingleDeleteManagerTemplate {
     simulateBackoffFailure(mockBackoffExecutor);
     simulateRecoveryFailure(mockErrorRecoverer);
 
-    testWriter.delete(entity);
+    testWriter.save(entity);
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
@@ -139,7 +138,7 @@ class DeleteManagerAsyncTest extends AbstractSingleDeleteManagerTemplate {
 
     simulateDynamoDbFailure(dynamoDBMapper);
 
-    testWriterWithoutBackoffAndRecoverer.delete(entity);
+    testWriterWithoutBackoffAndRecoverer.save(entity);
 
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verifyNoInteractions(mockBackoffExecutor, mockErrorRecoverer);

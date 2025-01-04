@@ -2,7 +2,7 @@ package br.com.devblack21.dynamodb.manager4j.resilience.algorithm;
 
 import java.util.Random;
 
-public class ExponencialFullJitter implements BackoffDelayAlgorithm {
+public final class ExponencialFullJitter implements BackoffDelayAlgorithm {
 
   private final int baseDelay;
   private final int maxBackoff;

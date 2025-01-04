@@ -1,17 +1,20 @@
-package br.com.devblack21.dynamodb.manager4j.writer.simple.sync;
+package br.com.devblack21.dynamodb.manager4j.writer.simple;
 
 import br.com.devblack21.dynamodb.manager4j.configuration.SingleWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.DeleteManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
-public class DeleteManagerSync extends AbstractSyncWriter implements DeleteManager {
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+
+public final class DeleteManagerAsync extends AbstractAsyncWriter implements DeleteManager {
 
   private final DynamoDBMapper dynamoDBMapper;
 
-  private DeleteManagerSync(final Builder builder) {
-    super(builder.retryPolicyConfiguration, builder.requestInterceptor);
+  private DeleteManagerAsync(final Builder builder) {
+    super(builder.retryPolicyConfiguration, builder.executorService, builder.requestInterceptor);
     this.dynamoDBMapper = builder.dynamoDBMapper;
   }
 
@@ -28,6 +31,7 @@ public class DeleteManagerSync extends AbstractSyncWriter implements DeleteManag
   public static class Builder {
     private final DynamoDBMapper dynamoDBMapper;
     private SingleWriteRetryPolicyConfiguration retryPolicyConfiguration;
+    private ExecutorService executorService;
     private RequestInterceptor requestInterceptor;
 
     public Builder(final DynamoDBMapper dynamoDBMapper) {
@@ -40,14 +44,22 @@ public class DeleteManagerSync extends AbstractSyncWriter implements DeleteManag
       return this;
     }
 
+    public Builder executorService(final ExecutorService executorService) {
+      this.executorService = executorService;
+      return this;
+    }
+
     public Builder requestInterceptor(final RequestInterceptor requestInterceptor) {
       this.requestInterceptor = requestInterceptor;
       return this;
     }
 
-    public DeleteManagerSync build() {
+    public DeleteManagerAsync build() {
       validate();
-      return new DeleteManagerSync(this);
+      if (executorService == null) {
+        executorService = Executors.newCachedThreadPool();
+      }
+      return new DeleteManagerAsync(this);
     }
 
     private void validate() {

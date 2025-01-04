@@ -10,7 +10,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
-public class MaxAttemptsRetryScheduler implements BackoffSingleWriteExecutor {
+public final class MaxAttemptsRetryScheduler implements BackoffSingleWriteExecutor {
 
   private final int maxAttempts;
   private final BackoffDelayAlgorithm delayAlgorithm;
@@ -29,9 +29,8 @@ public class MaxAttemptsRetryScheduler implements BackoffSingleWriteExecutor {
   }
 
   private void executeWithRetry(final Runnable runnable, final int attemptCount) throws ExecutionException, InterruptedException {
-    if (attemptCount >= this.maxAttempts) {
-      throw new MaxAttemptsRetryException();
-    }
+
+    this.validate(attemptCount);
 
     try {
       this.logRetryStart();
@@ -56,6 +55,12 @@ public class MaxAttemptsRetryScheduler implements BackoffSingleWriteExecutor {
         }
       },
       delay, TimeUnit.MILLISECONDS).get();
+  }
+
+  private void validate(final int attemptCount) {
+    if (attemptCount >= this.maxAttempts) {
+      throw new MaxAttemptsRetryException();
+    }
   }
 
   private void logRetryStart() {

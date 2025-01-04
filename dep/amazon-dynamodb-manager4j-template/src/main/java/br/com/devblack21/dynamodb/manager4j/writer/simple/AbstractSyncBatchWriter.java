@@ -1,19 +1,22 @@
-package br.com.devblack21.dynamodb.manager4j.writer.simple.sync;
+package br.com.devblack21.dynamodb.manager4j.writer.simple;
 
 import br.com.devblack21.dynamodb.manager4j.configuration.BatchWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.exception.UnprocessedItemsExceptions;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 import br.com.devblack21.dynamodb.manager4j.model.UnprocessedItem;
-import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
-@RequiredArgsConstructor
-abstract class AbstractSyncBatchWriter {
+abstract class AbstractSyncBatchWriter extends AbstractBatchWriter {
 
   private final BatchWriteRetryPolicyConfiguration retryPolicyConfiguration;
-  private final RequestInterceptor requestInterceptor;
+
+  public AbstractSyncBatchWriter(final BatchWriteRetryPolicyConfiguration retryPolicyConfiguration,
+                                 final RequestInterceptor requestInterceptor) {
+    super(retryPolicyConfiguration, requestInterceptor);
+    this.retryPolicyConfiguration = retryPolicyConfiguration;
+  }
 
   public void execute(final List<? extends TableEntity> entities) {
     List<UnprocessedItem> unprocesseds = UnprocessedItem.unprocessedItems(entities);
@@ -57,30 +60,6 @@ abstract class AbstractSyncBatchWriter {
       this.logError(entities, e);
       throw e;
     }
-  }
-
-  private void logError(final List<? extends TableEntity> entities, final Throwable throwable) {
-    if (this.requestInterceptor != null) {
-      this.requestInterceptor.logError(entities, throwable);
-    }
-  }
-
-  private void logSuccess(final List<? extends TableEntity> entities) {
-    if (this.requestInterceptor != null) {
-      this.requestInterceptor.logSuccess(entities);
-    }
-  }
-
-  private boolean isEnableBackoffExecutor() {
-    return isEnableRetryPolicy() && this.retryPolicyConfiguration.isEnableBackoffBatchWriteExecutor();
-  }
-
-  private boolean isEnableErrorRecoverer() {
-    return isEnableRetryPolicy() && this.retryPolicyConfiguration.isEnableErrorRecoverer();
-  }
-
-  private boolean isEnableRetryPolicy() {
-    return this.retryPolicyConfiguration != null;
   }
 
 }

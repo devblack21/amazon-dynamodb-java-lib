@@ -1,4 +1,4 @@
-package br.com.devblack21.dynamodb.manager4j.writer.simple.sync;
+package br.com.devblack21.dynamodb.manager4j.writer.simple;
 
 
 import br.com.devblack21.dynamodb.manager4j.configuration.SingleWriteRetryPolicyConfiguration;

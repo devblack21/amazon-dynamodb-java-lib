@@ -5,7 +5,7 @@ import br.com.devblack21.dynamodb.manager4j.interceptor.RetryInterceptor;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class MaxAttemptsRetryExecutor implements BackoffSingleWriteExecutor {
+public final class MaxAttemptsRetryExecutor implements BackoffSingleWriteExecutor {
 
   private final int maxAttempts;
   private final RetryInterceptor retryInterceptor;
@@ -14,10 +14,9 @@ public class MaxAttemptsRetryExecutor implements BackoffSingleWriteExecutor {
     execute(runnable, 0);
   }
 
-  private void execute(final Runnable runnable, final int count) {
-    if (count >= this.maxAttempts) {
-      throw new MaxAttemptsRetryException();
-    }
+  private void execute(final Runnable runnable, final int attemptCount) {
+
+    this.validate(attemptCount);
 
     try {
       this.logRetryStart();
@@ -25,7 +24,13 @@ public class MaxAttemptsRetryExecutor implements BackoffSingleWriteExecutor {
       this.logRetryEnd();
     } catch (final Exception e) {
       this.logRetryEnd();
-      execute(runnable, count + 1);
+      execute(runnable, attemptCount + 1);
+    }
+  }
+
+  private void validate(final int attemptCount) {
+    if (attemptCount >= this.maxAttempts) {
+      throw new MaxAttemptsRetryException();
     }
   }
 

@@ -4,10 +4,8 @@ import br.com.devblack21.dynamodb.manager4j.configuration.BatchWriteRetryPolicyC
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.MyItem;
 import br.com.devblack21.dynamodb.manager4j.transform.FailedBatchPutRequestTransformer;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.BatchDeleteManager;
 import br.com.devblack21.dynamodb.manager4j.writer.simple.BatchSaveManager;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.async.BatchDeleteManagerAsync;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.sync.BatchSaveManagerSync;
+import br.com.devblack21.dynamodb.manager4j.writer.simple.BatchSaveManagerSync;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

@@ -1,22 +1,26 @@
-package br.com.devblack21.dynamodb.manager4j.writer.simple.async;
+package br.com.devblack21.dynamodb.manager4j.writer.simple;
 
 import br.com.devblack21.dynamodb.manager4j.configuration.SingleWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
-import lombok.RequiredArgsConstructor;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-@RequiredArgsConstructor
-abstract class AbstractAsyncWriter {
+abstract class AbstractAsyncWriter extends AbstractSingleWriter {
 
   private final SingleWriteRetryPolicyConfiguration retryPolicyConfiguration;
   private final ExecutorService executorService;
-  private final RequestInterceptor requestInterceptor;
 
+  public AbstractAsyncWriter(final SingleWriteRetryPolicyConfiguration retryPolicyConfiguration,
+                             final ExecutorService executorService,
+                             final RequestInterceptor requestInterceptor) {
+    super(retryPolicyConfiguration, requestInterceptor);
+    this.executorService = executorService;
+    this.retryPolicyConfiguration = retryPolicyConfiguration;
+  }
   public void execute(final TableEntity entity) {
-    CompletableFuture.runAsync(() -> executor(entity), executorService)
+    CompletableFuture.runAsync(() -> this.executor(entity), executorService)
       .whenComplete((unused, throwable) -> {
         if (throwable != null) {
           this.handleSaveFailure(entity, throwable);
@@ -50,30 +54,6 @@ abstract class AbstractAsyncWriter {
     } finally {
       this.logError(entity, exceptionToHandle);
     }
-  }
-
-  private void logError(final TableEntity entity, final Throwable throwable) {
-    if (this.requestInterceptor != null) {
-      this.requestInterceptor.logError(entity, throwable);
-    }
-  }
-
-  private void logSuccess(final TableEntity entity) {
-    if (this.requestInterceptor != null) {
-      this.requestInterceptor.logSuccess(entity);
-    }
-  }
-
-  private boolean isEnableBackoffExecutor() {
-    return isEnableRetryPolicy() && this.retryPolicyConfiguration.isEnableBackoffSingleWriteExecutor();
-  }
-
-  private boolean isEnableErrorRecoverer() {
-    return isEnableRetryPolicy() && this.retryPolicyConfiguration.isEnableErrorRecoverer();
-  }
-
-  private boolean isEnableRetryPolicy() {
-    return this.retryPolicyConfiguration != null;
   }
 
 }

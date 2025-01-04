@@ -1,15 +1,18 @@
-package br.com.devblack21.dynamodb.manager4j.writer.simple.sync;
+package br.com.devblack21.dynamodb.manager4j.writer.simple;
 
 import br.com.devblack21.dynamodb.manager4j.configuration.SingleWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
-abstract class AbstractSyncWriter {
+abstract class AbstractSyncWriter extends AbstractSingleWriter {
 
   private final SingleWriteRetryPolicyConfiguration retryPolicyConfiguration;
-  private final RequestInterceptor requestInterceptor;
+
+  public AbstractSyncWriter(final SingleWriteRetryPolicyConfiguration retryPolicyConfiguration,
+                            final RequestInterceptor requestInterceptor) {
+    super(retryPolicyConfiguration, requestInterceptor);
+    this.retryPolicyConfiguration = retryPolicyConfiguration;
+  }
 
   public void execute(final TableEntity entity) {
     try {
@@ -47,30 +50,6 @@ abstract class AbstractSyncWriter {
       this.logError(entity, e);
       throw e;
     }
-  }
-
-  private void logError(final TableEntity entity, final Throwable throwable) {
-    if (this.requestInterceptor != null) {
-      this.requestInterceptor.logError(entity, throwable);
-    }
-  }
-
-  private void logSuccess(final TableEntity entity) {
-    if (this.requestInterceptor != null) {
-      this.requestInterceptor.logSuccess(entity);
-    }
-  }
-
-  private boolean isEnableBackoffExecutor() {
-    return isEnableRetryPolicy() && this.retryPolicyConfiguration.isEnableBackoffSingleWriteExecutor();
-  }
-
-  private boolean isEnableErrorRecoverer() {
-    return isEnableRetryPolicy() && this.retryPolicyConfiguration.isEnableErrorRecoverer();
-  }
-
-  private boolean isEnableRetryPolicy() {
-    return this.retryPolicyConfiguration != null;
   }
 
 }

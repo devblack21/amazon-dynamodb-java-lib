@@ -1,38 +1,32 @@
-package br.com.devblack21.dynamodb.manager4j.writer.simple.async;
+package br.com.devblack21.dynamodb.manager4j.writer.simple;
 
 import br.com.devblack21.dynamodb.manager4j.configuration.SingleWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.DeleteManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-
-public class DeleteManagerAsync extends AbstractAsyncWriter implements DeleteManager {
+public final class SaveManagerSync extends AbstractSyncWriter implements SaveManager {
 
   private final DynamoDBMapper dynamoDBMapper;
 
-  private DeleteManagerAsync(final Builder builder) {
-    super(builder.retryPolicyConfiguration, builder.executorService, builder.requestInterceptor);
+  private SaveManagerSync(final Builder builder) {
+    super(builder.retryPolicyConfiguration, builder.requestInterceptor);
     this.dynamoDBMapper = builder.dynamoDBMapper;
   }
 
   @Override
-  public void delete(final TableEntity entity) {
+  public void save(final TableEntity entity) {
     this.execute(entity);
   }
 
   @Override
   public void executor(final TableEntity entity) {
-    this.dynamoDBMapper.delete(entity);
+    this.dynamoDBMapper.save(entity);
   }
 
   public static class Builder {
     private final DynamoDBMapper dynamoDBMapper;
     private SingleWriteRetryPolicyConfiguration retryPolicyConfiguration;
-    private ExecutorService executorService;
     private RequestInterceptor requestInterceptor;
 
     public Builder(final DynamoDBMapper dynamoDBMapper) {
@@ -40,27 +34,19 @@ public class DeleteManagerAsync extends AbstractAsyncWriter implements DeleteMan
       validate();
     }
 
-    public Builder retryPolicyConfiguration(final SingleWriteRetryPolicyConfiguration retryPolicyConfiguration) {
+    public SaveManagerSync.Builder retryPolicyConfiguration(final SingleWriteRetryPolicyConfiguration retryPolicyConfiguration) {
       this.retryPolicyConfiguration = retryPolicyConfiguration;
       return this;
     }
 
-    public Builder executorService(final ExecutorService executorService) {
-      this.executorService = executorService;
-      return this;
-    }
-
-    public Builder requestInterceptor(final RequestInterceptor requestInterceptor) {
+    public SaveManagerSync.Builder requestInterceptor(final RequestInterceptor requestInterceptor) {
       this.requestInterceptor = requestInterceptor;
       return this;
     }
 
-    public DeleteManagerAsync build() {
+    public SaveManagerSync build() {
       validate();
-      if (executorService == null) {
-        executorService = Executors.newCachedThreadPool();
-      }
-      return new DeleteManagerAsync(this);
+      return new SaveManagerSync(this);
     }
 
     private void validate() {

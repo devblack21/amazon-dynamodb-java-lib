@@ -5,14 +5,10 @@ import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.MyItem;
 import br.com.devblack21.dynamodb.manager4j.transform.FailedBatchDeleteRequestTransformer;
 import br.com.devblack21.dynamodb.manager4j.writer.simple.BatchDeleteManager;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.BatchSaveManager;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.async.BatchSaveManagerAsync;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.sync.BatchDeleteManagerSync;
+import br.com.devblack21.dynamodb.manager4j.writer.simple.BatchDeleteManagerSync;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-
-import java.util.concurrent.ExecutorService;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;

@@ -1,19 +1,17 @@
-package br.com.devblack21.dynamodb.manager4j.writer.simple.async;
+package br.com.devblack21.dynamodb.manager4j.writer.simple;
 
 import br.com.devblack21.dynamodb.manager4j.configuration.BatchWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 import br.com.devblack21.dynamodb.manager4j.model.UnprocessedItem;
 import br.com.devblack21.dynamodb.manager4j.transform.FailedBatchDeleteRequestTransformer;
-import br.com.devblack21.dynamodb.manager4j.transform.FailedBatchPutRequestTransformer;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.BatchDeleteManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class BatchDeleteManagerAsync extends AbstractAsyncBatchWriter implements BatchDeleteManager {
+public final class BatchDeleteManagerAsync extends AbstractAsyncBatchWriter implements BatchDeleteManager {
 
   private final DynamoDBMapper dynamoDBMapper;
   private final FailedBatchDeleteRequestTransformer<? extends TableEntity> failedBatchtransformer;

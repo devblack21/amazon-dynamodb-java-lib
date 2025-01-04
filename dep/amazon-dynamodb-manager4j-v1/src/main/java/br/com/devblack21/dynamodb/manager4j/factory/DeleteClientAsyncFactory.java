@@ -3,9 +3,7 @@ package br.com.devblack21.dynamodb.manager4j.factory;
 import br.com.devblack21.dynamodb.manager4j.configuration.SingleWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.writer.simple.DeleteManager;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.SaveManager;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.async.DeleteManagerAsync;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.async.SaveManagerAsync;
+import br.com.devblack21.dynamodb.manager4j.writer.simple.DeleteManagerAsync;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
 import java.util.concurrent.ExecutorService;

@@ -1,4 +1,4 @@
-package br.com.devblack21.dynamodb.manager4j.writer.simple.sync;
+package br.com.devblack21.dynamodb.manager4j.writer.simple;
 
 import br.com.devblack21.dynamodb.manager4j.configuration.SingleWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.factory.DeleteClientSyncFactory;
@@ -7,7 +7,6 @@ import br.com.devblack21.dynamodb.manager4j.model.MyItem;
 import br.com.devblack21.dynamodb.manager4j.resilience.backoff.single.BackoffSingleWriteExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
 import br.com.devblack21.dynamodb.manager4j.writer.simple.templates.AbstractSingleDeleteManagerTemplate;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.DeleteManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

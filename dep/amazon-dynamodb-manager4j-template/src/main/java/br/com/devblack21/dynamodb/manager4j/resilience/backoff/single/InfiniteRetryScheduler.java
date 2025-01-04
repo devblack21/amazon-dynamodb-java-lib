@@ -9,7 +9,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
-public class InfiniteRetryScheduler implements BackoffSingleWriteExecutor {
+public final class InfiniteRetryScheduler implements BackoffSingleWriteExecutor {
 
   private final BackoffDelayAlgorithm delayAlgorithm;
   private final ScheduledExecutorService scheduledExecutorService;

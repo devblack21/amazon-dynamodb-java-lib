@@ -27,7 +27,7 @@ public class FailedBatchPutRequestTransformer<T extends TableEntity> {
         for (final WriteRequest writeRequest : writeRequests) {
           if (writeRequest.getPutRequest() != null) {
             final Map<String, AttributeValue> itemAttributes = writeRequest.getPutRequest().getItem();
-            final T ormObject = dynamoDBMapper.marshallIntoObject(ormClass, itemAttributes);
+            final T ormObject = this.dynamoDBMapper.marshallIntoObject(this.ormClass, itemAttributes);
             ormObjects.add(ormObject);
           }
         }

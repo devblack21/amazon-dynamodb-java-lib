@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 @RequiredArgsConstructor
-public class MaxAttemptsRetryExecutor implements BackoffBatchWriteExecutor {
+public final class MaxAttemptsRetryExecutor implements BackoffBatchWriteExecutor {
 
   private final int maxAttempts;
   private final RetryInterceptor retryInterceptor;
@@ -24,9 +24,8 @@ public class MaxAttemptsRetryExecutor implements BackoffBatchWriteExecutor {
   }
 
   private void execute(final Function<List<? extends TableEntity>, List<UnprocessedItem>> batchFunction, final List<? extends TableEntity> entities, final int count) {
-    if (count >= this.maxAttempts) {
-      throw new MaxAttemptsRetryException();
-    }
+
+    this.validate(maxAttempts);
 
     List<? extends TableEntity> unprocesseds = entities;
 
@@ -40,6 +39,12 @@ public class MaxAttemptsRetryExecutor implements BackoffBatchWriteExecutor {
     } catch (final Exception e) {
       this.logRetryEnd();
       execute(batchFunction, unprocesseds, count + 1);
+    }
+  }
+
+  private void validate(final int attemptCount) {
+    if (attemptCount >= this.maxAttempts) {
+      throw new MaxAttemptsRetryException();
     }
   }
 

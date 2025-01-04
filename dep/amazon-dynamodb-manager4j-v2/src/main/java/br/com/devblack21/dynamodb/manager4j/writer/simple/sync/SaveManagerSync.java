@@ -4,7 +4,7 @@
 //import br.com.devblack21.dynamodb.manager4j.resilience.backoff.single.BackoffSingleWriteExecutor;
 //import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
 //import br.com.devblack21.dynamodb.manager4j.writer.simple.SaveManager;
-//import br.com.devblack21.dynamodb.manager4j.writer.simple.sync.AbstractSyncWriter;
+//import br.com.devblack21.dynamodb.manager4j.writer.simple.AbstractSyncWriter;
 //import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 //
 //public class SaveManagerSync<T> extends AbstractSyncWriter<T> implements SaveManager<T> {

@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class DynamoDbWriterManagerClient implements DynamoDbWriterManager {
+public final class DynamoDbWriterManagerClient implements DynamoDbWriterManager {
 
   private final SaveManager dbResilienceSave;
   private final BatchSaveManager batchSaveManager;

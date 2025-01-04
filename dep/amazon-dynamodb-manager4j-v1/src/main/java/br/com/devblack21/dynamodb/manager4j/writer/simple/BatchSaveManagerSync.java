@@ -1,24 +1,21 @@
-package br.com.devblack21.dynamodb.manager4j.writer.simple.async;
+package br.com.devblack21.dynamodb.manager4j.writer.simple;
 
 import br.com.devblack21.dynamodb.manager4j.configuration.BatchWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 import br.com.devblack21.dynamodb.manager4j.model.UnprocessedItem;
 import br.com.devblack21.dynamodb.manager4j.transform.FailedBatchPutRequestTransformer;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.BatchSaveManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-public class BatchSaveManagerAsync extends AbstractAsyncBatchWriter implements BatchSaveManager {
+public final class BatchSaveManagerSync extends AbstractSyncBatchWriter implements BatchSaveManager {
 
   private final DynamoDBMapper dynamoDBMapper;
   private final FailedBatchPutRequestTransformer<? extends TableEntity> failedBatchTransformer;
 
-  private BatchSaveManagerAsync(final Builder builder) {
-    super(builder.retryPolicyConfiguration, builder.executorService, builder.requestInterceptor);
+  private BatchSaveManagerSync(final Builder builder) {
+    super(builder.retryPolicyConfiguration, builder.requestInterceptor);
     this.dynamoDBMapper = builder.dynamoDBMapper;
     this.failedBatchTransformer = builder.failedBatchTransformer;
   }
@@ -41,7 +38,6 @@ public class BatchSaveManagerAsync extends AbstractAsyncBatchWriter implements B
     private final DynamoDBMapper dynamoDBMapper;
     private final FailedBatchPutRequestTransformer<? extends TableEntity> failedBatchTransformer;
     private BatchWriteRetryPolicyConfiguration retryPolicyConfiguration;
-    private ExecutorService executorService;
     private RequestInterceptor requestInterceptor;
 
     public Builder(final DynamoDBMapper dynamoDBMapper, final FailedBatchPutRequestTransformer<? extends TableEntity> failedBatchTransformer) {
@@ -55,23 +51,16 @@ public class BatchSaveManagerAsync extends AbstractAsyncBatchWriter implements B
       return this;
     }
 
-    public Builder executorService(final ExecutorService executorService) {
-      this.executorService = executorService;
-      return this;
-    }
-
     public Builder requestInterceptor(final RequestInterceptor requestInterceptor) {
       this.requestInterceptor = requestInterceptor;
       return this;
     }
 
-    public BatchSaveManagerAsync build() {
+    public BatchSaveManagerSync build() {
       validate();
-      if (this.executorService == null) {
-        this.executorService = Executors.newCachedThreadPool();
-      }
-      return new BatchSaveManagerAsync(this);
+      return new BatchSaveManagerSync(this);
     }
+
 
     private void validate() {
       if (dynamoDBMapper == null || failedBatchTransformer == null) {

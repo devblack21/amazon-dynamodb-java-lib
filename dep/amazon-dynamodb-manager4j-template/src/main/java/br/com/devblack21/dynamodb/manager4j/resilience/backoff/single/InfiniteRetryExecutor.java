@@ -4,7 +4,7 @@ import br.com.devblack21.dynamodb.manager4j.interceptor.RetryInterceptor;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class InfiniteRetryExecutor implements BackoffSingleWriteExecutor {
+public final class InfiniteRetryExecutor implements BackoffSingleWriteExecutor {
 
   private final RetryInterceptor retryInterceptor;
 

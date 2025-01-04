@@ -5,7 +5,7 @@ import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 import br.com.devblack21.dynamodb.manager4j.transform.FailedBatchDeleteRequestTransformer;
 import br.com.devblack21.dynamodb.manager4j.writer.simple.BatchDeleteManager;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.async.BatchDeleteManagerAsync;
+import br.com.devblack21.dynamodb.manager4j.writer.simple.BatchDeleteManagerAsync;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
 import java.util.concurrent.ExecutorService;

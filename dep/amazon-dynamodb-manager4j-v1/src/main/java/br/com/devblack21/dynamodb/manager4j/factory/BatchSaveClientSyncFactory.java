@@ -5,7 +5,7 @@ import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 import br.com.devblack21.dynamodb.manager4j.transform.FailedBatchPutRequestTransformer;
 import br.com.devblack21.dynamodb.manager4j.writer.simple.BatchSaveManager;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.sync.BatchSaveManagerSync;
+import br.com.devblack21.dynamodb.manager4j.writer.simple.BatchSaveManagerSync;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
 public class BatchSaveClientSyncFactory {

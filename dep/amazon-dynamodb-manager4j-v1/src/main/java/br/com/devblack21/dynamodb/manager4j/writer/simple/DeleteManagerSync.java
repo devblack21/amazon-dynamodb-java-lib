@@ -1,37 +1,32 @@
-package br.com.devblack21.dynamodb.manager4j.writer.simple.async;
+package br.com.devblack21.dynamodb.manager4j.writer.simple;
 
 import br.com.devblack21.dynamodb.manager4j.configuration.SingleWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
-import br.com.devblack21.dynamodb.manager4j.writer.simple.SaveManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-public class SaveManagerAsync extends AbstractAsyncWriter implements SaveManager {
+public final class DeleteManagerSync extends AbstractSyncWriter implements DeleteManager {
 
   private final DynamoDBMapper dynamoDBMapper;
 
-  private SaveManagerAsync(final Builder builder) {
-    super(builder.retryPolicyConfiguration, builder.executorService, builder.requestInterceptor);
+  private DeleteManagerSync(final Builder builder) {
+    super(builder.retryPolicyConfiguration, builder.requestInterceptor);
     this.dynamoDBMapper = builder.dynamoDBMapper;
   }
 
   @Override
-  public void save(final TableEntity entity) {
+  public void delete(final TableEntity entity) {
     this.execute(entity);
   }
 
   @Override
   public void executor(final TableEntity entity) {
-    this.dynamoDBMapper.save(entity);
+    this.dynamoDBMapper.delete(entity);
   }
 
   public static class Builder {
     private final DynamoDBMapper dynamoDBMapper;
     private SingleWriteRetryPolicyConfiguration retryPolicyConfiguration;
-    private ExecutorService executorService;
     private RequestInterceptor requestInterceptor;
 
     public Builder(final DynamoDBMapper dynamoDBMapper) {
@@ -44,22 +39,14 @@ public class SaveManagerAsync extends AbstractAsyncWriter implements SaveManager
       return this;
     }
 
-    public Builder executorService(final ExecutorService executorService) {
-      this.executorService = executorService;
-      return this;
-    }
-
     public Builder requestInterceptor(final RequestInterceptor requestInterceptor) {
       this.requestInterceptor = requestInterceptor;
       return this;
     }
 
-    public SaveManagerAsync build() {
+    public DeleteManagerSync build() {
       validate();
-      if (executorService == null) {
-        executorService = Executors.newCachedThreadPool();
-      }
-      return new SaveManagerAsync(this);
+      return new DeleteManagerSync(this);
     }
 
     private void validate() {
