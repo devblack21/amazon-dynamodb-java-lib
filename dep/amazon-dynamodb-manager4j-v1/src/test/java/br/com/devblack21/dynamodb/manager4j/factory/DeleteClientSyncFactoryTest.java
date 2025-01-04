@@ -37,5 +37,4 @@ class DeleteClientSyncFactoryTest {
     assertThat(client, is(instanceOf(DeleteManagerSync.class)));
   }
 
-
 }

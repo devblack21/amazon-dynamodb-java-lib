@@ -110,7 +110,6 @@ class BatchDeleteManagerSyncTest extends AbstractBatchDeleteManagerTemplate {
     verify(mockBackoffExecutor, times(1)).execute(any(Function.class), anyList());
     verify(mockErrorRecoverer, times(1)).recover(anyList());
     verify(mockRequestInterceptor, times(1)).logError(anyList(), any(RuntimeException.class));
-
   }
 
   @Test
@@ -127,7 +126,6 @@ class BatchDeleteManagerSyncTest extends AbstractBatchDeleteManagerTemplate {
     verify(mockErrorRecoverer, times(1)).recover(anyList());
     verify(mockRequestInterceptor, times(1)).logError(anyList(), any());
     verify(mockRequestInterceptor, never()).logSuccess(anyList());
-
   }
 
   @Test

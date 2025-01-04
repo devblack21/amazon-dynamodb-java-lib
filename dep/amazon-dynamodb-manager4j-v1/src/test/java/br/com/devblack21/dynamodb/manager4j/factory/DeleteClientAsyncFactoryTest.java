@@ -41,5 +41,4 @@ class DeleteClientAsyncFactoryTest {
     assertThat(client, is(instanceOf(DeleteManagerAsync.class)));
   }
 
-
 }

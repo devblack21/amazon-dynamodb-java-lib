@@ -51,5 +51,4 @@ class BatchDeleteClientSyncFactoryTest {
     assertThat(client, is(instanceOf(BatchDeleteManagerSync.class)));
   }
 
-
 }

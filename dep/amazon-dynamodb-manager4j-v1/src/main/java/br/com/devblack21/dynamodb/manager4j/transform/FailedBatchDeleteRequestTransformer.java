@@ -36,4 +36,5 @@ public class FailedBatchDeleteRequestTransformer<T extends TableEntity> {
 
     return ormObjects;
   }
+
 }

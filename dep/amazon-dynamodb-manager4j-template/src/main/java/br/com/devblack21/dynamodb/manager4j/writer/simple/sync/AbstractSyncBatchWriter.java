@@ -82,4 +82,5 @@ abstract class AbstractSyncBatchWriter {
   private boolean isEnableRetryPolicy() {
     return this.retryPolicyConfiguration != null;
   }
+
 }

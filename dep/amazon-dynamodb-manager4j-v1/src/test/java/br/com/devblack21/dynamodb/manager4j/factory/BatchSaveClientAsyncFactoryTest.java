@@ -45,6 +45,4 @@ class BatchSaveClientAsyncFactoryTest {
     assertThat(client, is(instanceOf(BatchSaveManagerAsync.class)));
   }
 
-
-
 }

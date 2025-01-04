@@ -11,5 +11,4 @@ public class UnprocessedItemsExceptions extends RuntimeException {
     this.unprocessedItems = unprocessedItems;
   }
 
-
 }

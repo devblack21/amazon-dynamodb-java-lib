@@ -41,5 +41,4 @@ class SaveClientAsyncFactoryTest {
     assertThat(client, is(instanceOf(SaveManagerAsync.class)));
   }
 
-
 }

@@ -172,5 +172,4 @@ class BatchDeleteManagerAsyncTest extends AbstractBatchDeleteManagerTemplate {
     });
   }
 
-
 }

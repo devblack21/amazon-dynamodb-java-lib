@@ -39,5 +39,4 @@ class SaveClientSyncFactoryTest {
     assertThat(client, is(instanceOf(SaveManagerSync.class)));
   }
 
-
 }

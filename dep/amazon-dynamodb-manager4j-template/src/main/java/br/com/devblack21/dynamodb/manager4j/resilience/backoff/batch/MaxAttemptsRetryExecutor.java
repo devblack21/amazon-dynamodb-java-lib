@@ -43,7 +43,6 @@ public class MaxAttemptsRetryExecutor implements BackoffBatchWriteExecutor {
     }
   }
 
-
   private void logRetryStart() {
     if (this.retryInterceptor != null) {
       this.retryInterceptor.logRetryStart();

@@ -6,5 +6,4 @@ public interface RetryInterceptor {
 
   void logRetryEnd();
 
-
 }

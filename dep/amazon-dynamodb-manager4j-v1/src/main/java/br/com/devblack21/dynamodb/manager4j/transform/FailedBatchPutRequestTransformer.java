@@ -36,4 +36,5 @@ public class FailedBatchPutRequestTransformer<T extends TableEntity> {
 
     return ormObjects;
   }
+
 }

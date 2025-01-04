@@ -14,5 +14,4 @@ public interface RequestInterceptor {
 
   void logError(List<? extends TableEntity> entity, final Throwable throwable);
 
-
 }

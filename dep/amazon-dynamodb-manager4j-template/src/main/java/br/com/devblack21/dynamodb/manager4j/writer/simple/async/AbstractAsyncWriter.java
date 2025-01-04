@@ -75,4 +75,5 @@ abstract class AbstractAsyncWriter {
   private boolean isEnableRetryPolicy() {
     return this.retryPolicyConfiguration != null;
   }
+
 }

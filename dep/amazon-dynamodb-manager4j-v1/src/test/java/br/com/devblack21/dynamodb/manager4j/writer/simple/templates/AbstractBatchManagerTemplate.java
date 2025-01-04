@@ -25,5 +25,4 @@ public class AbstractBatchManagerTemplate extends AbstractManagerTemplate {
     doNothing().when(executor).execute(captor.capture(), anyList());
   }
 
-
 }

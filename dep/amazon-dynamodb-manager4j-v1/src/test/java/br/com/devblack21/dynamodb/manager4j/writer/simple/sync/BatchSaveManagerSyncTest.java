@@ -59,7 +59,7 @@ class BatchSaveManagerSyncTest extends AbstractBatchSaveManagerTemplate {
 
   @Test
   void shouldExecuteSuccessfullyWithoutErrors() {
- final MyItem entity = getMyItem();
+    final MyItem entity = getMyItem();
 
     testWriter.batchSave(List.of(entity));
 
@@ -70,7 +70,7 @@ class BatchSaveManagerSyncTest extends AbstractBatchSaveManagerTemplate {
 
   @Test
   void shouldRetryOnFailure() throws ExecutionException, InterruptedException {
- final MyItem entity = getMyItem();
+    final MyItem entity = getMyItem();
 
     simulateDynamoDbFailure(dynamoDBMapper);
     captureFunctionForRetry(mockBackoffExecutor);
@@ -97,7 +97,7 @@ class BatchSaveManagerSyncTest extends AbstractBatchSaveManagerTemplate {
 
   @Test
   void shouldRecoverOnFailureWhenBackoffExecutorFails() throws ExecutionException, InterruptedException {
- final MyItem entity = getMyItem();
+    final MyItem entity = getMyItem();
 
     simulateDynamoDbFailure(dynamoDBMapper);
     simulateBackoffFailure(mockBackoffExecutor);
@@ -111,7 +111,7 @@ class BatchSaveManagerSyncTest extends AbstractBatchSaveManagerTemplate {
 
   @Test
   void shouldLogErrorWhenRecoveryFails() throws ExecutionException, InterruptedException {
- final MyItem entity = getMyItem();
+    final MyItem entity = getMyItem();
 
     simulateFailedBatch(dynamoDBMapper, transformer);
     simulateDynamoDbFailure(dynamoDBMapper);
@@ -128,7 +128,7 @@ class BatchSaveManagerSyncTest extends AbstractBatchSaveManagerTemplate {
 
   @Test
   void shouldLogErrorWhenNoRecoveryAndNoBackoff() {
- final MyItem entity = getMyItem();
+    final MyItem entity = getMyItem();
 
     simulateDynamoDbFailure(dynamoDBMapper);
 
@@ -136,7 +136,6 @@ class BatchSaveManagerSyncTest extends AbstractBatchSaveManagerTemplate {
 
     verifyNoInteractions(mockBackoffExecutor, mockErrorRecoverer);
     verify(mockRequestInterceptor, times(1)).logError(anyList(), any());
-
   }
 
 }

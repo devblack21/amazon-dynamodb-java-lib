@@ -1,5 +1,6 @@
 package br.com.devblack21.dynamodb.manager4j.transform;
 
+import br.com.devblack21.dynamodb.manager4j.model.MyItem;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper.FailedBatch;
@@ -116,16 +117,4 @@ class FailedBatchPutRequestTransformerTest {
     assertThat(result.get(0), is(nullValue()));
   }
 
-  @Getter
-  @EqualsAndHashCode
-  static class MyItem implements TableEntity {
-    private final String id;
-    private final String name;
-
-    public MyItem(final String id, final String name) {
-      this.id = id;
-      this.name = name;
-    }
-
-  }
 }

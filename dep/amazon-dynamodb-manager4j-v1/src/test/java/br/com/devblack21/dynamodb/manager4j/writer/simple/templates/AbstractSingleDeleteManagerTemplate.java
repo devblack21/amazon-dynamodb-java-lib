@@ -12,5 +12,4 @@ public class AbstractSingleDeleteManagerTemplate extends AbstractSingleManagerTe
     doThrow(RuntimeException.class).when(dynamoDBMapper).delete(any(MyItem.class));
   }
 
-
 }
