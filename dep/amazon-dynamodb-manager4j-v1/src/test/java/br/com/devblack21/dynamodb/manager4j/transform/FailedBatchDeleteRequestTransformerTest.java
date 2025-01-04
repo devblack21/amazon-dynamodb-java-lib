@@ -1,13 +1,11 @@
 package br.com.devblack21.dynamodb.manager4j.transform;
 
-import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
+import br.com.devblack21.dynamodb.manager4j.model.MyItem;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper.FailedBatch;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.DeleteRequest;
 import com.amazonaws.services.dynamodbv2.model.WriteRequest;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -115,17 +113,5 @@ class FailedBatchDeleteRequestTransformerTest {
     assertThat(result, hasSize(1));
     assertThat(result.get(0), is(nullValue()));
   }
-
-  @Getter
-  @EqualsAndHashCode
-  static class MyItem implements TableEntity {
-    private final String id;
-    private final String name;
-
-    public MyItem(final String id, final String name) {
-      this.id = id;
-      this.name = name;
-    }
-
-  }
+  
 }

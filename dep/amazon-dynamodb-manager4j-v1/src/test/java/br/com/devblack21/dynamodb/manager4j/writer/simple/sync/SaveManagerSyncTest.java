@@ -6,18 +6,19 @@ import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.MyItem;
 import br.com.devblack21.dynamodb.manager4j.resilience.backoff.single.BackoffSingleWriteExecutor;
 import br.com.devblack21.dynamodb.manager4j.resilience.recover.ErrorRecoverer;
+import br.com.devblack21.dynamodb.manager4j.writer.simple.templates.AbstractSingleSaveManagerTemplate;
 import br.com.devblack21.dynamodb.manager4j.writer.simple.SaveManager;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
 import java.util.concurrent.ExecutionException;
 
+import static br.com.devblack21.dynamodb.manager4j.model.MyItem.getMyItem;
 import static org.mockito.Mockito.*;
 
-class SaveManagerSyncTest {
+class SaveManagerSyncTest extends AbstractSingleSaveManagerTemplate {
 
   private DynamoDBMapper dynamoDBMapper;
   private BackoffSingleWriteExecutor mockBackoffExecutor;
@@ -50,7 +51,7 @@ class SaveManagerSyncTest {
 
   @Test
   void shouldExecuteSuccessfullyWithoutErrors() {
-    final MyItem entity = new MyItem("12", "");
+    final MyItem entity = getMyItem();
 
     testWriter.save(entity);
 
@@ -61,10 +62,10 @@ class SaveManagerSyncTest {
 
   @Test
   void shouldRetryOnFailure() throws ExecutionException, InterruptedException {
-    final MyItem entity = new MyItem("12", "");
+    final MyItem entity = getMyItem();
 
-    simulateDynamoDbFailure();
-    captureRunnableForRetry();
+    simulateDynamoDbFailure(dynamoDBMapper);
+    captureRunnableForRetry(mockBackoffExecutor);
 
     testWriter.save(entity);
 
@@ -76,10 +77,10 @@ class SaveManagerSyncTest {
 
   @Test
   void shouldRecoverOnFailureWhenBackoffExecutorFails() throws ExecutionException, InterruptedException {
-    final MyItem entity = new MyItem("12", "");
+    final MyItem entity = getMyItem();
 
-    simulateDynamoDbFailure();
-    simulateBackoffFailure();
+    simulateDynamoDbFailure(dynamoDBMapper);
+    simulateBackoffFailure(mockBackoffExecutor);
 
     testWriter.save(entity);
 
@@ -91,11 +92,11 @@ class SaveManagerSyncTest {
 
   @Test
   void shouldLogErrorWhenRecoveryFails() throws ExecutionException, InterruptedException {
-    final MyItem entity = new MyItem("12", "");
+    final MyItem entity = getMyItem();
 
-    simulateDynamoDbFailure();
-    simulateBackoffFailure();
-    simulateRecoveryFailure();
+    simulateDynamoDbFailure(dynamoDBMapper);
+    simulateBackoffFailure(mockBackoffExecutor);
+    simulateRecoveryFailure(mockErrorRecoverer);
 
     Assertions.assertThrows(RuntimeException.class, () -> testWriter.save(entity));
 
@@ -108,32 +109,14 @@ class SaveManagerSyncTest {
 
   @Test
   void shouldLogErrorWhenNoRecoveryAndNoBackoff() {
-    final MyItem entity = new MyItem("12", "");
+    final MyItem entity = getMyItem();
 
-    simulateDynamoDbFailure();
+    simulateDynamoDbFailure(dynamoDBMapper);
 
     Assertions.assertThrows(RuntimeException.class, () -> testWriterWithoutBackoffAndRecoverer.save(entity));
 
     verifyNoInteractions(mockBackoffExecutor, mockErrorRecoverer);
     verify(mockRequestInterceptor, times(1)).logError(eq(entity), any());
-  }
-
-  private void simulateDynamoDbFailure() {
-    doThrow(RuntimeException.class).when(dynamoDBMapper).save(any(Object.class));
-  }
-
-  private void simulateBackoffFailure() throws ExecutionException, InterruptedException {
-    final ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
-    doThrow(RuntimeException.class).when(mockBackoffExecutor).execute(runnableCaptor.capture());
-  }
-
-  private void simulateRecoveryFailure() {
-    doThrow(RuntimeException.class).when(mockErrorRecoverer).recover(any(MyItem.class));
-  }
-
-  private void captureRunnableForRetry() throws ExecutionException, InterruptedException {
-    ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
-    doNothing().when(mockBackoffExecutor).execute(runnableCaptor.capture());
   }
 
 }
