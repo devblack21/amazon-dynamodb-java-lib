@@ -1,7 +1,9 @@
 package br.com.devblack21.dynamodb.manager4j.writer.simple;
 
-public interface DeleteManager<T> {
+import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 
-  void delete(T entity);
+public interface DeleteManager {
+
+  void delete(TableEntity entity);
 
 }

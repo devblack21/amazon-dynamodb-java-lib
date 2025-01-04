@@ -6,30 +6,30 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class DynamoDbWriterManagerClient<T extends TableEntity> implements DynamoDbWriterManager<T> {
+public class DynamoDbWriterManagerClient implements DynamoDbWriterManager {
 
   private final SaveManager dbResilienceSave;
   private final BatchSaveManager batchSaveManager;
-  private final DeleteManager<T> deleteManager;
-  private final BatchDeleteManager<T> dynamoDbResilienceBatchDelete;
+  private final DeleteManager deleteManager;
+  private final BatchDeleteManager dynamoDbResilienceBatchDelete;
 
   @Override
-  public void save(final T entity) {
+  public void save(final TableEntity entity) {
     this.dbResilienceSave.save(entity);
   }
 
   @Override
-  public void batchSave(final List<T> entity) {
+  public void batchSave(final List<? extends TableEntity> entity) {
     this.batchSaveManager.batchSave(entity);
   }
 
   @Override
-  public void delete(final T entity) {
+  public void delete(final TableEntity entity) {
     this.deleteManager.delete(entity);
   }
 
   @Override
-  public void batchDelete(final List<T> entity) {
+  public void batchDelete(final List<? extends TableEntity> entity) {
     this.dynamoDbResilienceBatchDelete.batchDelete(entity);
   }
 
