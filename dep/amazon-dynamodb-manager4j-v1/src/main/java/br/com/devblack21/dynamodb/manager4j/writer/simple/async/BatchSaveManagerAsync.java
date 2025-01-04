@@ -1,6 +1,6 @@
 package br.com.devblack21.dynamodb.manager4j.writer.simple.async;
 
-import br.com.devblack21.dynamodb.manager4j.configuration.WriteRetryPolicyConfiguration;
+import br.com.devblack21.dynamodb.manager4j.configuration.BatchWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 import br.com.devblack21.dynamodb.manager4j.model.UnprocessedItem;
@@ -40,7 +40,7 @@ public class BatchSaveManagerAsync extends AbstractAsyncBatchWriter implements B
   public static class Builder {
     private final DynamoDBMapper dynamoDBMapper;
     private final FailedBatchPutRequestTransformer<? extends TableEntity> failedBatchTransformer;
-    private WriteRetryPolicyConfiguration retryPolicyConfiguration;
+    private BatchWriteRetryPolicyConfiguration retryPolicyConfiguration;
     private ExecutorService executorService;
     private RequestInterceptor requestInterceptor;
 
@@ -50,7 +50,7 @@ public class BatchSaveManagerAsync extends AbstractAsyncBatchWriter implements B
       validate();
     }
 
-    public Builder retryPolicyConfiguration(final WriteRetryPolicyConfiguration retryPolicyConfiguration) {
+    public Builder retryPolicyConfiguration(final BatchWriteRetryPolicyConfiguration retryPolicyConfiguration) {
       this.retryPolicyConfiguration = retryPolicyConfiguration;
       return this;
     }

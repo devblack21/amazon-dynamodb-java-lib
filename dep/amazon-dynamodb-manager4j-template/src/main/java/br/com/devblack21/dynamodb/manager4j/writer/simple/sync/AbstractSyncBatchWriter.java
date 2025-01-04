@@ -1,6 +1,6 @@
 package br.com.devblack21.dynamodb.manager4j.writer.simple.sync;
 
-import br.com.devblack21.dynamodb.manager4j.configuration.WriteRetryPolicyConfiguration;
+import br.com.devblack21.dynamodb.manager4j.configuration.BatchWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.exception.UnprocessedItemsExceptions;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
@@ -12,7 +12,7 @@ import java.util.List;
 @RequiredArgsConstructor
 abstract class AbstractSyncBatchWriter {
 
-  private final WriteRetryPolicyConfiguration retryPolicyConfiguration;
+  private final BatchWriteRetryPolicyConfiguration retryPolicyConfiguration;
   private final RequestInterceptor requestInterceptor;
 
   public void execute(final List<? extends TableEntity> entities) {

@@ -1,6 +1,6 @@
 package br.com.devblack21.dynamodb.manager4j.writer.simple.async;
 
-import br.com.devblack21.dynamodb.manager4j.configuration.WriteRetryPolicyConfiguration;
+import br.com.devblack21.dynamodb.manager4j.configuration.SingleWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 import br.com.devblack21.dynamodb.manager4j.writer.simple.SaveManager;
@@ -30,7 +30,7 @@ public class SaveManagerAsync extends AbstractAsyncWriter implements SaveManager
 
   public static class Builder {
     private final DynamoDBMapper dynamoDBMapper;
-    private WriteRetryPolicyConfiguration retryPolicyConfiguration;
+    private SingleWriteRetryPolicyConfiguration retryPolicyConfiguration;
     private ExecutorService executorService;
     private RequestInterceptor requestInterceptor;
 
@@ -39,7 +39,7 @@ public class SaveManagerAsync extends AbstractAsyncWriter implements SaveManager
       validate();
     }
 
-    public Builder retryPolicyConfiguration(final WriteRetryPolicyConfiguration retryPolicyConfiguration) {
+    public Builder retryPolicyConfiguration(final SingleWriteRetryPolicyConfiguration retryPolicyConfiguration) {
       this.retryPolicyConfiguration = retryPolicyConfiguration;
       return this;
     }

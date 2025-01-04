@@ -1,6 +1,6 @@
 package br.com.devblack21.dynamodb.manager4j.factory;
 
-import br.com.devblack21.dynamodb.manager4j.configuration.WriteRetryPolicyConfiguration;
+import br.com.devblack21.dynamodb.manager4j.configuration.BatchWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 import br.com.devblack21.dynamodb.manager4j.transform.FailedBatchPutRequestTransformer;
@@ -11,9 +11,9 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 public class BatchSaveClientSyncFactory {
 
   public static BatchSaveManager createClient(final DynamoDBMapper dynamoDBMapper,
-                                                  final FailedBatchPutRequestTransformer<? extends TableEntity> failedTransformer,
-                                                  final WriteRetryPolicyConfiguration retryPolicyConfiguration,
-                                                  final RequestInterceptor requestInterceptor) {
+                                              final FailedBatchPutRequestTransformer<? extends TableEntity> failedTransformer,
+                                              final BatchWriteRetryPolicyConfiguration retryPolicyConfiguration,
+                                              final RequestInterceptor requestInterceptor) {
     return new BatchSaveManagerSync.Builder(dynamoDBMapper, failedTransformer)
       .retryPolicyConfiguration(retryPolicyConfiguration)
       .requestInterceptor(requestInterceptor)
@@ -22,13 +22,13 @@ public class BatchSaveClientSyncFactory {
 
 
   public static BatchSaveManager createClient(final DynamoDBMapper dynamoDBMapper,
-                                                  final FailedBatchPutRequestTransformer<? extends TableEntity> transformer,
-                                                  final WriteRetryPolicyConfiguration retryPolicyConfiguration) {
+                                              final FailedBatchPutRequestTransformer<? extends TableEntity> transformer,
+                                              final BatchWriteRetryPolicyConfiguration retryPolicyConfiguration) {
     return createClient(dynamoDBMapper, transformer, retryPolicyConfiguration, null);
   }
 
   public static BatchSaveManager createClient(final DynamoDBMapper dynamoDBMapper,
-                                                  final FailedBatchPutRequestTransformer<? extends TableEntity> transformer) {
+                                              final FailedBatchPutRequestTransformer<? extends TableEntity> transformer) {
     return createClient(dynamoDBMapper, transformer, null);
   }
 

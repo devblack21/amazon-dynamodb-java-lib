@@ -1,7 +1,7 @@
 package br.com.devblack21.dynamodb.manager4j.writer.simple.async;
 
 
-import br.com.devblack21.dynamodb.manager4j.configuration.WriteRetryPolicyConfiguration;
+import br.com.devblack21.dynamodb.manager4j.configuration.SingleWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.MyItem;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
@@ -49,7 +49,7 @@ class AbstractAsyncWriterTest {
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
-    final WriteRetryPolicyConfiguration retryPolicyConfiguration = WriteRetryPolicyConfiguration.builder()
+    final SingleWriteRetryPolicyConfiguration retryPolicyConfiguration = SingleWriteRetryPolicyConfiguration.builder()
       .backoffSingleWriteExecutor(mockBackoffExecutor)
       .errorRecoverer(mockErrorRecoverer)
       .build();
@@ -66,7 +66,7 @@ class AbstractAsyncWriterTest {
       mockRequestInterceptor);
 
     testWriterWithoutBackoffAndRecoverer = new TestAsyncWriterFailure(
-      WriteRetryPolicyConfiguration.builder()
+      SingleWriteRetryPolicyConfiguration.builder()
         .build(),
       executorService,
       mockRequestInterceptor);
@@ -167,7 +167,7 @@ class AbstractAsyncWriterTest {
 
   private static class TestAsyncWriterSuccess extends AbstractAsyncWriter {
 
-    public TestAsyncWriterSuccess(final WriteRetryPolicyConfiguration retryPolicyConfiguration,
+    public TestAsyncWriterSuccess(final SingleWriteRetryPolicyConfiguration retryPolicyConfiguration,
                                   final ExecutorService executorService,
                                   final RequestInterceptor requestInterceptor) {
       super(retryPolicyConfiguration, executorService, requestInterceptor);
@@ -180,7 +180,7 @@ class AbstractAsyncWriterTest {
 
   private static class TestAsyncWriterFailure extends AbstractAsyncWriter {
 
-    public TestAsyncWriterFailure(final WriteRetryPolicyConfiguration retryPolicyConfiguration,
+    public TestAsyncWriterFailure(final SingleWriteRetryPolicyConfiguration retryPolicyConfiguration,
                                   final ExecutorService executorService,
                                   final RequestInterceptor requestInterceptor) {
       super(retryPolicyConfiguration, executorService, requestInterceptor);

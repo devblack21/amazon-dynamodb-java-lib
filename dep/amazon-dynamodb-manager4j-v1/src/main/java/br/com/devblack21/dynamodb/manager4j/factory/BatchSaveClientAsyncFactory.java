@@ -1,6 +1,6 @@
 package br.com.devblack21.dynamodb.manager4j.factory;
 
-import br.com.devblack21.dynamodb.manager4j.configuration.WriteRetryPolicyConfiguration;
+import br.com.devblack21.dynamodb.manager4j.configuration.BatchWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 import br.com.devblack21.dynamodb.manager4j.transform.FailedBatchPutRequestTransformer;
@@ -15,7 +15,7 @@ public class BatchSaveClientAsyncFactory {
 
   public static BatchSaveManager createClient(final DynamoDBMapper dynamoDBMapper,
                                               final FailedBatchPutRequestTransformer<? extends TableEntity> failedTransformer,
-                                              final WriteRetryPolicyConfiguration retryPolicyConfiguration,
+                                              final BatchWriteRetryPolicyConfiguration retryPolicyConfiguration,
                                               final ExecutorService executorService,
                                               final RequestInterceptor requestInterceptor) {
     return new BatchSaveManagerAsync.Builder(dynamoDBMapper, failedTransformer)

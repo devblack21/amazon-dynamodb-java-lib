@@ -1,7 +1,7 @@
 package br.com.devblack21.dynamodb.manager4j.writer.simple.async;
 
 
-import br.com.devblack21.dynamodb.manager4j.configuration.WriteRetryPolicyConfiguration;
+import br.com.devblack21.dynamodb.manager4j.configuration.BatchWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.MyItem;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
@@ -52,7 +52,7 @@ class AbstractAsyncBatchWriterTest {
     mockErrorRecoverer = mock(ErrorRecoverer.class);
     mockRequestInterceptor = mock(RequestInterceptor.class);
 
-    final WriteRetryPolicyConfiguration retryPolicyConfiguration = WriteRetryPolicyConfiguration.builder()
+    final BatchWriteRetryPolicyConfiguration retryPolicyConfiguration = BatchWriteRetryPolicyConfiguration.builder()
       .backoffBatchWriteExecutor(mockBackoffExecutor)
       .errorRecoverer(mockErrorRecoverer)
       .build();
@@ -69,7 +69,7 @@ class AbstractAsyncBatchWriterTest {
       mockRequestInterceptor);
 
     testWriterWithoutBackoffAndRecoverer = new TestAsyncWriterFailure(
-      WriteRetryPolicyConfiguration.builder()
+      BatchWriteRetryPolicyConfiguration.builder()
         .build(),
       executorService,
       mockRequestInterceptor);
@@ -169,7 +169,7 @@ class AbstractAsyncBatchWriterTest {
 
   private static class TestAsyncWriterSuccess extends AbstractAsyncBatchWriter {
 
-    public TestAsyncWriterSuccess(final WriteRetryPolicyConfiguration retryPolicyConfiguration,
+    public TestAsyncWriterSuccess(final BatchWriteRetryPolicyConfiguration retryPolicyConfiguration,
                                   final ExecutorService executorService,
                                   final RequestInterceptor requestInterceptor) {
       super(retryPolicyConfiguration, executorService, requestInterceptor);
@@ -177,7 +177,7 @@ class AbstractAsyncBatchWriterTest {
 
 
     @Override
-    protected List<UnprocessedItem> executor(List<? extends TableEntity> entity) {
+    protected List<UnprocessedItem> executor(final List<? extends TableEntity> entity) {
       return List.of();
     }
 
@@ -185,14 +185,14 @@ class AbstractAsyncBatchWriterTest {
 
   private static class TestAsyncWriterFailure extends AbstractAsyncBatchWriter {
 
-    public TestAsyncWriterFailure(final WriteRetryPolicyConfiguration retryPolicyConfiguration,
+    public TestAsyncWriterFailure(final BatchWriteRetryPolicyConfiguration retryPolicyConfiguration,
                                   final ExecutorService executorService,
                                   final RequestInterceptor requestInterceptor) {
       super(retryPolicyConfiguration, executorService, requestInterceptor);
     }
 
     @Override
-    protected List<UnprocessedItem> executor(List<? extends TableEntity> entity) {
+    protected List<UnprocessedItem> executor(final List<? extends TableEntity> entity) {
       return UnprocessedItem.unprocessedItems(List.of(new MyItem("1", ""), new MyItem("1", "")));
     }
   }

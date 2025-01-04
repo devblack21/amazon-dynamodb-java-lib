@@ -1,6 +1,6 @@
 package br.com.devblack21.dynamodb.manager4j.writer.simple.async;
 
-import br.com.devblack21.dynamodb.manager4j.configuration.WriteRetryPolicyConfiguration;
+import br.com.devblack21.dynamodb.manager4j.configuration.BatchWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.factory.BatchSaveClientAsyncFactory;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
@@ -64,7 +64,7 @@ class BatchSaveManagerAsyncTest {
 
     testWriter = BatchSaveClientAsyncFactory.createClient(dynamoDBMapper,
       transformer,
-      WriteRetryPolicyConfiguration.builder()
+      BatchWriteRetryPolicyConfiguration.builder()
         .backoffBatchWriteExecutor(mockBackoffExecutor)
         .errorRecoverer(mockErrorRecoverer)
         .build(),
