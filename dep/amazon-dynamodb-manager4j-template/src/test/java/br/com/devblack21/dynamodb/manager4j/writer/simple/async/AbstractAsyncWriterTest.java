@@ -141,7 +141,7 @@ class AbstractAsyncWriterTest {
     Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(mockBackoffExecutor, times(1)).execute(any(Runnable.class));
       verify(mockErrorRecoverer, times(1)).recover(any(MyItem.class));
-      verify(mockRequestInterceptor, never()).logError(any(MyItem.class), any());
+      verify(mockRequestInterceptor, times(1)).logError(any(MyItem.class), any());
       verify(mockRequestInterceptor, never()).logSuccess(any(MyItem.class));
     });
   }

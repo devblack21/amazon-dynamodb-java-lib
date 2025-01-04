@@ -58,9 +58,7 @@ public class BatchSaveManagerSync extends AbstractSyncBatchWriter implements Bat
     }
 
     public BatchSaveManagerSync build() {
-      if (dynamoDBMapper == null || failedBatchTransformer == null) {
-        throw new IllegalStateException("DynamoDBMapper and FailedBatchTransformer are required");
-      }
+      validate();
       return new BatchSaveManagerSync(this);
     }
 

@@ -3,6 +3,7 @@ package br.com.devblack21.dynamodb.manager4j.writer.simple.async;
 import br.com.devblack21.dynamodb.manager4j.configuration.BatchWriteRetryPolicyConfiguration;
 import br.com.devblack21.dynamodb.manager4j.factory.BatchSaveClientAsyncFactory;
 import br.com.devblack21.dynamodb.manager4j.interceptor.RequestInterceptor;
+import br.com.devblack21.dynamodb.manager4j.model.MyItem;
 import br.com.devblack21.dynamodb.manager4j.model.TableEntity;
 import br.com.devblack21.dynamodb.manager4j.model.UnprocessedItem;
 import br.com.devblack21.dynamodb.manager4j.resilience.backoff.batch.BackoffBatchWriteExecutor;
@@ -13,8 +14,6 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.PutRequest;
 import com.amazonaws.services.dynamodbv2.model.WriteRequest;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -214,16 +213,4 @@ class BatchSaveManagerAsyncTest {
     doNothing().when(mockBackoffExecutor).execute(captor.capture(), anyList());
   }
 
-  @Getter
-  @EqualsAndHashCode
-  static class MyItem implements TableEntity {
-    private final String id;
-    private final String name;
-
-    public MyItem(final String id, final String name) {
-      this.id = id;
-      this.name = name;
-    }
-
-  }
 }
